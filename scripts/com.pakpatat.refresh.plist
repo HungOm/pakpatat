@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Nightly archive check for Päkpätät.
+
+  Install:    scripts/install-schedule.command
+  Or by hand: cp this to ~/Library/LaunchAgents/, edit __ROOT__ to the repo
+              path, then: launchctl load ~/Library/LaunchAgents/com.pakpatat.refresh.plist
+
+  03:10 local is chosen to be off-peak for Malaysia; refresh-nightly.sh then
+  waits a further random 0-30 minutes so the request does not land on the same
+  second every night.
+
+  RunAtLoad is false ON PURPOSE: loading this should not immediately fire a
+  scrape. If the machine was asleep at 03:10, launchd runs it once on wake --
+  that is enough for a check whose whole point is "sometime overnight".
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.pakpatat.refresh</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__ROOT__/scripts/refresh-nightly.sh</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>3</integer>
+    <key>Minute</key><integer>10</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>__ROOT__/data/refresh.launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>__ROOT__/data/refresh.launchd.log</string>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>LowPriorityIO</key>
+  <true/>
+</dict>
+</plist>

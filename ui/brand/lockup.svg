@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 96" width="500" height="96" role="img" aria-label="Päkpätät">
+  <g fill="#4F46E5" opacity=".3">
+    <path transform="translate(6,16)" d="M14 4H4V60H14V56H8V8H14Z"/>
+    <path transform="translate(104,16)" d="M0 4H10V60H0V56H6V8H0Z"/>
+  </g>
+  <g transform="translate(30,16)"><path fill="#4F46E5" fill-rule="evenodd" d="M32 7C29 5 25 4 21 4.5C12 5.5 6 13 6 25C6 34 8 42 13 49C18 56 25 60 32 60C39 60 46 56 51 49C56 42 58 34 58 25C58 13 52 5.5 43 4.5C39 4 35 5 32 7ZM32 45L28.5 36H35.5Z"/><circle cx="21" cy="27" r="9" fill="#FBBF24"/><circle cx="43" cy="27" r="9" fill="#FBBF24"/><circle cx="21" cy="27" r="4" fill="#4F46E5"/><circle cx="43" cy="27" r="4" fill="#4F46E5"/></g>
+  <text x="140" y="46" font-family="Source Sans 3, Noto Sans, IBM Plex Sans, Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="650"
+        letter-spacing="-.5" fill="#14161A">Päkpätät</text>
+  <text x="141" y="70" font-family="Source Sans 3, Noto Sans, IBM Plex Sans, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" fill="#6d727c">It answers what it knows. It says so when it doesn't.</text>
+</svg>

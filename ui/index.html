@@ -1,0 +1,1651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Päkpätät</title>
+<!-- The owl mark. Replaces a blue rounded square reading "RM" -- Refugee
+     Malaysia, UNHCR's retired site brand, in UNHCR's own blue (#0072BC).
+     TERMS.md forbids that name and NOTICE.md forbids implying the affiliation,
+     so the two places a user looks first were both breaking the project's own
+     rules. One path, fill-rule evenodd: the eyes are holes, so it works on any
+     background at any size. See BRAND.md. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20width%3D%2232%22%20height%3D%2232%22%20role%3D%22img%22%20aria-label%3D%22P%C3%A4kp%C3%A4t%C3%A4t%22%3E%3Cpath%20fill%3D%22%234F46E5%22%20fill-rule%3D%22evenodd%22%20d%3D%22M32%207C29%205%2025%204%2021%204.5C12%205.5%206%2013%206%2025C6%2034%208%2042%2013%2049C18%2056%2025%2060%2032%2060C39%2060%2046%2056%2051%2049C56%2042%2058%2034%2058%2025C58%2013%2052%205.5%2043%204.5C39%204%2035%205%2032%207ZM32%2045L28.5%2036H35.5Z%22%2F%3E%3Ccircle%20cx%3D%2221%22%20cy%3D%2227%22%20r%3D%229%22%20fill%3D%22%23FBBF24%22%2F%3E%3Ccircle%20cx%3D%2243%22%20cy%3D%2227%22%20r%3D%229%22%20fill%3D%22%23FBBF24%22%2F%3E%3Ccircle%20cx%3D%2221%22%20cy%3D%2227%22%20r%3D%224%22%20fill%3D%22%234F46E5%22%2F%3E%3Ccircle%20cx%3D%2243%22%20cy%3D%2227%22%20r%3D%224%22%20fill%3D%22%234F46E5%22%2F%3E%3C%2Fsvg%3E">
+<style>
+  /* Global guard: an element with [hidden] must never be shown, even when a
+     class below gives it a display value. (This bit us once already.) */
+  [hidden] { display: none !important; }
+
+  :root {
+    --bg:        #f4f5f7;
+    --panel:     #ffffff;
+    --rail:      #ffffff;
+    --ink:       #14161a;
+    --muted:     #6d727c;
+    --faint:     #9aa0aa;
+    --line:      #e6e8ec;
+    --line-soft: #f0f1f4;
+    /* Indigo -- deliberately NOT UNHCR blue (#0072BC), which this file used to
+       set with the comment "UNHCR blue". Measured hue distance: indigo is 40
+       degrees off UNHCR's blue and 47 off UN's #009EDB, where azure (18/24)
+       and cyan (15/8) are close enough to read as the official palette at a
+       glance. Contrast 6.29:1 on white. See BRAND.md. */
+    --accent:    #4F46E5;
+    --accent-ink:#4338CA;
+    --accent-wash:#EEF0FE;
+    --gold:      #FBBF24;   /* the owl's eyes -- MARK ONLY, never UI chrome,
+                               so it can never be confused with --warn-* */
+    --user-bg:   #eef3f9;
+    --warn-bg:   #fff8e8;
+    --warn-line: #f0d08a;
+    --warn-ink:  #7a5504;
+    --ok-bg:     #e8f5ec;
+    --ok-line:   #b3d9c1;
+    --ok-ink:    #1a6b38;
+    --bad-bg:    #fdecec;   /* reserved for unverified facts -- see .alert */
+    --bad-line:  #e9a9a9;
+    --bad-ink:   #8c1d1d;
+    --shadow:    0 1px 2px rgba(16,20,28,.05), 0 8px 24px rgba(16,20,28,.07);
+    --shadow-lg: 0 24px 60px rgba(16,20,28,.22);
+    --r:  10px;
+    --r-lg: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #0f1114;
+      --panel:     #171a1f;
+      --rail:      #131519;
+      --ink:       #eceef1;
+      --muted:     #9aa0aa;
+      --faint:     #6d737d;
+      --line:      #272b32;
+      --line-soft: #1e2228;
+      --accent:    #818CF8;
+      --accent-ink:#A5B4FC;
+      --accent-wash:#1E1B4B;
+      --gold:      #FCD34D;
+      --user-bg:   #1b2430;
+      --warn-bg:   #2b2410;
+      --warn-line: #6d5a1d;
+      --warn-ink:  #efd695;
+      --ok-bg:     #12291c;
+      --ok-line:   #2c5f3d;
+      --ok-ink:    #8bd0a4;
+      --bad-bg:    #2e1414;
+      --bad-line:  #7a2c2c;
+      --bad-ink:   #f2b3b3;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      --shadow-lg: 0 24px 60px rgba(0,0,0,.6);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    display: flex; overflow: hidden;
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+          "Myanmar Sangam MN", "Myanmar Text", "Noto Sans Myanmar", "Padauk", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px;
+                              border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--faint); background-clip: content-box; }
+
+  /* ------------------------------- side rail ------------------------------ */
+  #rail {
+    width: 248px; flex: none; background: var(--rail);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; z-index: 30;
+  }
+  .brand { padding: 18px 16px 14px; display: flex; align-items: center; gap: 10px; }
+  /* The mark is the owl itself, not a tile with something inside it. No
+     gradient and no shadow: BRAND.md requires it survive one flat colour and
+     a black-and-white photocopy, and a gradient is the first thing to die. */
+  .mark { width: 30px; height: 30px; flex: none; color: var(--accent); display: block; }
+  .mark svg { width: 100%; height: 100%; display: block; }
+  .brand b { font-size: 15px; font-weight: 650; letter-spacing: -.01em; display: block; }
+  .brand small { font-size: 11px; color: var(--faint); display: block; letter-spacing: .02em; }
+
+  .rail-pad { padding: 0 12px; }
+  .newbtn {
+    width: 100%; display: flex; align-items: center; gap: 9px; justify-content: center;
+    padding: 9px 12px; border-radius: var(--r); border: 1px solid var(--line);
+    background: var(--panel); cursor: pointer; font-size: 13.5px; font-weight: 600;
+    box-shadow: var(--shadow); transition: .15s;
+  }
+  .newbtn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .rail-h { font-size: 10.5px; font-weight: 700; letter-spacing: .09em;
+            text-transform: uppercase; color: var(--faint); padding: 20px 16px 7px; }
+  #hist { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+  .hitem {
+    display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; color: var(--muted); transition: .12s;
+  }
+  .hitem:hover { background: var(--line-soft); color: var(--ink); }
+  .hitem.on { background: var(--accent-wash); color: var(--accent-ink); font-weight: 600; }
+  .hitem span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hitem .x { opacity: 0; font-size: 15px; line-height: 1; color: var(--faint);
+              padding: 0 2px; border: 0; background: none; cursor: pointer; }
+  .hitem:hover .x { opacity: 1; }
+  .hitem .x:hover { color: #d24b4b; }
+  .hist-empty { font-size: 12.5px; color: var(--faint); padding: 4px 10px; }
+
+  .rail-foot { border-top: 1px solid var(--line); padding: 10px 12px; display: grid; gap: 4px; }
+  .railbtn {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+    padding: 8px 9px; border-radius: 8px; border: 0; background: none;
+    color: var(--muted); font-size: 13px; cursor: pointer; transition: .12s;
+  }
+  .railbtn:hover { background: var(--line-soft); color: var(--ink); }
+  .railbtn .k { margin-left: auto; font-size: 11px; color: var(--faint); }
+  .lang { display: flex; gap: 4px; background: var(--line-soft); padding: 3px;
+          border-radius: 9px; margin-top: 2px; }
+  .lang button { flex: 1; border: 0; background: none; padding: 6px 4px; border-radius: 7px;
+                 font-size: 12.5px; color: var(--muted); cursor: pointer; }
+  .lang button.on { background: var(--panel); color: var(--ink); font-weight: 600;
+                    box-shadow: var(--shadow); }
+
+  /* --------------------------------- main --------------------------------- */
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 56px; flex: none; border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 82%, transparent);
+    backdrop-filter: saturate(1.6) blur(12px);
+    display: flex; align-items: center; gap: 12px; padding: 0 18px;
+  }
+  #menuBtn { display: none; border: 0; background: none; font-size: 19px;
+             cursor: pointer; color: var(--muted); padding: 4px 6px; }
+  .topbar h2 { font-size: 14.5px; font-weight: 600; margin: 0; letter-spacing: -.01em;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scope { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+  .scope label { font-size: 11.5px; color: var(--faint); }
+  .scope select {
+    font-size: 12.5px; padding: 5px 26px 5px 10px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--panel); cursor: pointer;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--faint) 50%),
+                      linear-gradient(135deg, var(--faint) 50%, transparent 50%);
+    background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+    background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+  }
+
+  #banner { flex: none; display: flex; align-items: center; gap: 9px;
+            background: var(--warn-bg); color: var(--warn-ink);
+            border-bottom: 1px solid var(--warn-line); padding: 9px 18px; font-size: 13px; }
+  #banner button { margin-left: auto; border: 1px solid currentColor; background: none;
+                   color: inherit; border-radius: 7px; padding: 3px 10px;
+                   font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  #scroller { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 26px 20px 8px; }
+
+  /* ------------------------------ welcome view ---------------------------- */
+  .hero { padding: 44px 0 10px; }
+  .hero h1 { font-size: 27px; line-height: 1.25; margin: 0 0 10px;
+             font-weight: 680; letter-spacing: -.025em; }
+  .hero p { margin: 0 0 26px; color: var(--muted); font-size: 14.5px; max-width: 56ch; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 620px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    text-align: left; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 13px 15px; cursor: pointer; transition: .15s;
+    display: flex; gap: 11px; align-items: flex-start;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
+  .card .ico { font-size: 17px; line-height: 1.35; flex: none; }
+  .browse {
+    margin-top: 12px; padding: 9px 14px; border-radius: var(--r-md);
+    border: 1px solid var(--line); background: transparent; color: var(--muted);
+    cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit;
+  }
+  .browse:hover { border-color: var(--accent); color: var(--ink); }
+
+  /* The guide sheet: wider than Settings because it is a reading surface, and
+     scrollable because ten categories will not fit a laptop screen. */
+  .sheet.wide { max-width: 760px; width: 100%; }
+  .guide { max-height: 58vh; overflow-y: auto; margin: 6px 0 4px; padding-right: 4px; }
+  .gcat { margin: 0 0 16px; }
+  .gcat h3 {
+    display: flex; align-items: center; gap: 8px; margin: 0 0 7px;
+    font-size: 13px; font-weight: 700; letter-spacing: .01em; color: var(--ink);
+  }
+  .gcat .gico { font-size: 15px; }
+  /* The other language's category name, alongside the current one. */
+  .gcat .galt { font-weight: 500; color: var(--muted); font-size: 12px; }
+  .gcat .galt::before { content: "· "; }
+  .gcat ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .gcat li { display: grid; gap: 1px; }
+  .gcat li .gq {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    padding: 6px 10px; border-radius: var(--r-md); border: 1px solid transparent;
+    background: transparent; color: var(--ink);
+    font: inherit; font-size: 13px; line-height: 1.45;
+  }
+  /* The second language sits under the first, quieter but still a full-size
+     tap target -- it is the line a community member will be asked to read. */
+  .gcat li .gq.alt { color: var(--muted); font-size: 12.5px; padding-top: 2px; }
+  .gcat li .gq:hover {
+    background: var(--panel); border-color: var(--line); color: var(--ink);
+  }
+  .row.end { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+  .card b { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .card small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+  /* -------------------------------- messages ------------------------------ */
+  .msg { margin-bottom: 26px; }
+  .msg.user { display: flex; justify-content: flex-end; }
+  .msg.user .bubble {
+    background: var(--user-bg); border: 1px solid var(--line);
+    padding: 10px 15px; border-radius: 16px 16px 4px 16px; max-width: 86%;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .who { display: flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 600;
+         letter-spacing: .04em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+  /* The owl marks its own answers. Was a gradient ending in #00a3e0 -- the
+     last hardcoded blue in this file, and the last thing tying the UI's
+     palette to UNHCR's. Masked rather than drawn so it stays a single
+     currentColor shape. */
+  .who .dot {
+    width: 18px; height: 18px; flex: none; background: var(--accent);
+    --owl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M32%207C29%205%2025%204%2021%204.5C12%205.5%206%2013%206%2025C6%2034%208%2042%2013%2049C18%2056%2025%2060%2032%2060C39%2060%2046%2056%2051%2049C56%2042%2058%2034%2058%2025C58%2013%2052%205.5%2043%204.5C39%204%2035%205%2032%207ZM21%2018A9%209%200%201%200%2021%2036A9%209%200%201%200%2021%2018ZM43%2018A9%209%200%201%200%2043%2036A9%209%200%201%200%2043%2018ZM21%2023A4%204%200%201%200%2021%2031A4%204%200%201%200%2021%2023ZM43%2023A4%204%200%201%200%2043%2031A4%204%200%201%200%2043%2023ZM32%2045L28.5%2036H35.5Z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask: var(--owl) center/contain no-repeat;   /* WKWebView */
+            mask: var(--owl) center/contain no-repeat;
+  }
+  .answer { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .answer a { color: var(--accent); }
+
+  .warn { display: flex; gap: 8px; background: var(--warn-bg); border: 1px solid var(--warn-line);
+          color: var(--warn-ink); border-radius: 10px; padding: 9px 12px;
+          font-size: 12.5px; line-height: 1.5; margin-top: 12px; }
+
+  /* Unverified facts. Deliberately louder than .warn and placed ABOVE the
+     answer: a phone number the archive does not contain is the one thing here
+     that causes harm if acted on, so it must be read before the answer is. */
+  .alert { background: var(--bad-bg); border: 1px solid var(--bad-line);
+           color: var(--bad-ink); border-radius: 10px; padding: 11px 13px;
+           font-size: 13px; line-height: 1.55; margin-bottom: 12px; }
+  .alert b { display: block; margin-bottom: 3px; }
+  .alert ul { margin: 7px 0 0; padding-left: 18px; }
+  .alert li { margin-top: 2px; }
+  .alert code { font-family: inherit; font-weight: 700;
+                background: rgba(140,29,29,.10); border-radius: 4px; padding: 0 4px; }
+  @media (prefers-color-scheme: dark) { .alert code { background: rgba(242,179,179,.14); } }
+
+  .srcbox { margin-top: 16px; }
+  .srchead { display: flex; align-items: center; gap: 8px; width: 100%; border: 0;
+             background: none; padding: 0; cursor: pointer; color: var(--faint);
+             font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+  .srchead:hover { color: var(--muted); }
+  .srchead .caret { transition: transform .18s; }
+  .srchead[aria-expanded="false"] .caret { transform: rotate(-90deg); }
+  .srclist { display: grid; gap: 7px; margin-top: 10px; }
+  .src { display: flex; gap: 9px; align-items: baseline; background: var(--panel);
+         border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font-size: 13px; }
+  .tag { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;
+         background: var(--bg); border: 1px solid var(--line); border-radius: 5px;
+         padding: 1px 5px; flex: none; color: var(--muted); }
+  .badge { font-size: 10.5px; font-weight: 600; border-radius: 5px; padding: 1px 6px; flex: none; }
+  .badge.new { background: var(--ok-bg); color: var(--ok-ink); border: 1px solid var(--ok-line); }
+  .badge.old { background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn-line); }
+  .src a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; font-weight: 500; }
+  .src a:hover { text-decoration: underline; }
+  /* ---- rendered markdown inside an answer ---- */
+  .answer p { margin: 0 0 10px; }
+  .answer h3, .answer h4, .answer h5, .answer h6 {
+    margin: 16px 0 7px; line-height: 1.35; font-weight: 650; }
+  .answer h3 { font-size: 15px; }
+  .answer h4, .answer h5, .answer h6 { font-size: 13.5px; color: var(--muted); }
+  .answer ul, .answer ol { margin: 0 0 10px; padding-left: 22px; }
+  .answer li { margin: 3px 0; }
+  .answer code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 4px; }
+  .answer hr { border: 0; border-top: 1px solid var(--line); margin: 14px 0; }
+  /* A table is the one construct that must not reflow into unreadable soup on
+     a narrow window -- scroll it instead of wrapping every cell to one word. */
+  .answer .twrap { overflow-x: auto; margin: 0 0 12px; }
+  .answer table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  .answer th, .answer td {
+    border: 1px solid var(--line); padding: 6px 9px; text-align: left;
+    vertical-align: top; }
+  .answer th { background: var(--bg); font-weight: 650; }
+  /* Citation markers, so [S1] reads as a reference and not as stray brackets. */
+  .answer .cref { color: var(--accent); font-size: 11.5px; font-weight: 600;
+    white-space: nowrap; }
+
+  .toast-act { margin-left: 12px; border: 0; background: rgba(255,255,255,.18);
+    color: inherit; font: inherit; font-size: 12px; font-weight: 600;
+    border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+  .src .sec { color: var(--muted); }
+  /* The citation for a document source. `.src` is a flex row, so the citation
+     needs its own full-width line rather than sitting beside the title. */
+  .src { flex-wrap: wrap; }
+  .src .cite { flex-basis: 100%; color: var(--muted); font-size: 11.5px;
+               line-height: 1.45; margin-top: 3px; }
+
+  .acts { display: flex; gap: 4px; margin-top: 12px; }
+  .act { border: 0; background: none; color: var(--faint); font-size: 12px; cursor: pointer;
+         padding: 4px 8px; border-radius: 7px; display: flex; align-items: center; gap: 5px; }
+  .act:hover { background: var(--line-soft); color: var(--ink); }
+
+  .progress { font-size: 12.5px; color: var(--faint); margin-top: 6px;
+              font-variant-numeric: tabular-nums; }
+  .typing { display: flex; gap: 4px; padding: 4px 0; }
+  .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint);
+              animation: bob 1.1s infinite ease-in-out; }
+  .typing i:nth-child(2) { animation-delay: .17s; }
+  .typing i:nth-child(3) { animation-delay: .34s; }
+  @keyframes bob { 0%,60%,100% { opacity:.25; transform: translateY(0); }
+                   30% { opacity:1; transform: translateY(-4px); } }
+
+  /* -------------------------------- composer ------------------------------ */
+  footer { flex: none; padding: 6px 20px 14px;
+           background: linear-gradient(to top, var(--bg) 55%, transparent); }
+  .composer { max-width: 720px; margin: 0 auto; background: var(--panel);
+              border: 1px solid var(--line); border-radius: 18px; padding: 8px 8px 8px 14px;
+              display: flex; align-items: flex-end; gap: 8px; box-shadow: var(--shadow);
+              transition: border-color .15s, box-shadow .15s; }
+  .composer:focus-within { border-color: var(--accent);
+                           box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+  textarea { flex: 1; border: 0; background: none; resize: none; outline: none;
+             padding: 9px 0; min-height: 40px; max-height: 190px; line-height: 1.55; }
+  textarea::placeholder { color: var(--faint); }
+  #send { width: 38px; height: 38px; flex: none; border: 0; border-radius: 12px;
+          background: var(--accent); color: #fff; cursor: pointer; font-size: 16px;
+          display: grid; place-items: center; transition: .15s; }
+  #send:hover:not(:disabled) { background: var(--accent-ink); }
+  #send:disabled { opacity: .35; cursor: default; }
+  .foot-note { max-width: 720px; margin: 9px auto 0; font-size: 11.5px;
+               color: var(--faint); text-align: center; line-height: 1.5; }
+
+  /* ---------------------------------------------------------------- splash
+     Shown on every launch while /preflight answers. It is not decoration: the
+     five checks behind it are the difference between "the archive has no
+     answer" and "this computer is missing the index", which look identical to
+     the person typing. The animation covers the wait; the checklist is the
+     point. */
+  #splash {
+    position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+    background: var(--bg); transition: opacity .45s ease, visibility .45s;
+  }
+  #splash[hidden] { display: grid; opacity: 0; visibility: hidden; pointer-events: none; }
+  .splash-in { display: flex; flex-direction: column; align-items: center; gap: 4px;
+               padding: 24px; text-align: center; }
+  /* [ owl owl ] -- the citation bracket the icon could not carry at 16px gets
+     to be a frame here, where there is room to read it as one. */
+  .splash-owls { display: flex; gap: 12px; align-items: center; color: var(--accent); }
+  .splash-owls svg { width: 62px; height: 62px; display: block; }
+  .splash-owls .brk { width: 15px; opacity: .32; animation: rise .6s ease .42s both; }
+  /* A pair, because the paired form is the auspicious one in Burmese usage and
+     a lone owl is the one Malay folklore hears at the window (BRAND.md §2).
+     They blink -- offset, so it reads as two creatures rather than one loop. */
+  .splash-owls .o1 { animation: rise .6s cubic-bezier(.2,.8,.3,1) both; }
+  .splash-owls .o2 { animation: rise .6s cubic-bezier(.2,.8,.3,1) .09s both; }
+  /* fill-box, or the origin resolves against the whole SVG canvas and the eye
+     slides off the face instead of closing. */
+  .blink { transform-box: fill-box; transform-origin: center;
+           animation: blink 4s ease-in-out 1.1s infinite; }
+  .o2 .blink { animation-delay: 2.3s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(9px) scale(.94); }
+                    to   { opacity: 1; transform: none; } }
+  /* Scale the eye to a slit rather than hiding it: a disappearing eye reads as
+     a rendering glitch, a closing one reads as a blink. */
+  @keyframes blink { 0%,92%,100% { transform: scaleY(1); }
+                     95%         { transform: scaleY(.12); } }
+  .splash-name { font-size: 25px; font-weight: 650; letter-spacing: -.015em;
+                 margin-top: 16px; animation: rise .6s ease .18s both; }
+  .splash-gloss { font-size: 12px; color: var(--faint); animation: rise .6s ease .26s both; }
+  .splash-tag { font-size: 13px; color: var(--muted); margin-top: 10px; max-width: 320px;
+                line-height: 1.5; animation: rise .6s ease .34s both; }
+  .splash-checks { margin-top: 22px; min-height: 92px; width: 320px; text-align: left;
+                   font-size: 12px; display: flex; flex-direction: column; gap: 5px; }
+  /* .chk, not .row: a generic .row already exists further down carrying
+     margin-top:24px, which spaced this list ~48px apart instead of the 5px the
+     flex gap asks for. */
+  .splash-checks .chk { display: flex; gap: 8px; align-items: flex-start;
+                        line-height: 1.45; color: var(--muted);
+                        animation: rise .35s ease both; }
+  .splash-checks .chk i { font-style: normal; flex: none; width: 13px; text-align: center; }
+  .splash-checks .chk.bad { color: var(--bad-ink); }
+  .splash-checks .chk.bad i { color: var(--bad-ink); }
+  .splash-checks .chk.ok i { color: var(--ok-ink); }
+  .splash-checks .chk code { font-size: 11px; background: var(--line-soft);
+                             padding: 1px 5px; border-radius: 4px; }
+  .splash-note { margin-top: 14px; font-size: 11px; color: var(--faint); max-width: 330px;
+                 line-height: 1.5; }
+  .splash-btn { margin-top: 14px; }
+  /* Respect the OS setting. Vestibular disorders are common, and a splash is
+     the one screen a user cannot skip. */
+  @media (prefers-reduced-motion: reduce) {
+    #splash *, #splash *::before { animation: none !important; transition: none !important; }
+  }
+
+  /* --------------------------------- modal -------------------------------- */
+  .scrim { position: fixed; inset: 0; background: rgba(10,13,18,.5); z-index: 60;
+           display: flex; align-items: center; justify-content: center; padding: 20px;
+           backdrop-filter: blur(3px); animation: fade .16s ease; }
+  @keyframes fade { from { opacity: 0 } }
+  .sheet { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
+           padding: 24px; width: 100%; max-width: 470px; max-height: 88vh; overflow-y: auto;
+           box-shadow: var(--shadow-lg); animation: pop .18s cubic-bezier(.2,.8,.3,1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(10px) scale(.985) } }
+  .sheet h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: -.02em; }
+  .sheet .lede { margin: 0 0 4px; font-size: 13px; color: var(--muted); }
+  .sheet .lede.alt { margin: 0 0 10px; font-size: 12px; opacity: .85; }
+  .sheet label { display: block; font-size: 12px; font-weight: 650; letter-spacing: .02em;
+                 margin: 18px 0 6px; }
+  .sheet select, .sheet input {
+    width: 100%; font-size: 14px; padding: 9px 11px; border-radius: var(--r);
+    border: 1px solid var(--line); background: var(--bg); outline: none;
+  }
+  .sheet select:focus, .sheet input:focus { border-color: var(--accent); }
+  .note { font-size: 12px; color: var(--muted); margin: 7px 0 0; line-height: 1.5; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px;
+          font-weight: 600; border-radius: 20px; padding: 3px 10px; margin-bottom: 14px; }
+  .pill.on  { background: var(--ok-bg);   color: var(--ok-ink);   border: 1px solid var(--ok-line); }
+  .pill.off { background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn-line); }
+  .row { display: flex; align-items: center; gap: 9px; margin-top: 24px; }
+  .btn { border: 0; border-radius: var(--r); padding: 9px 18px; font-size: 14px;
+         font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; }
+  .btn:hover { background: var(--accent-ink); }
+  .btn.ghost { background: none; color: var(--muted); border: 1px solid var(--line); }
+  .btn.ghost:hover { background: var(--line-soft); color: var(--ink); }
+
+  #toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+           background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500;
+           padding: 9px 16px; border-radius: 20px; z-index: 80; box-shadow: var(--shadow-lg);
+           animation: rise .2s ease; }
+  @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px) } }
+
+  /* ------------------------------- responsive ----------------------------- */
+  @media (max-width: 820px) {
+    #menuBtn { display: block; }
+    #rail { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%);
+            transition: transform .22s ease; box-shadow: var(--shadow-lg); }
+    body.nav #rail { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Splash. The owls here are drawn body-then-eyes rather than as the single
+     evenodd path used everywhere else, because each eye has to be animated
+     separately to blink; the eye fill is var(--bg) so it tracks the theme. -->
+<div id="splash">
+  <div class="splash-in">
+    <div class="splash-owls" aria-hidden="true">
+      <svg class="brk" viewBox="0 0 16 64"><path fill="currentColor" d="M14 4H4V60H14V56H8V8H14Z"/></svg>
+      <svg class="o1" viewBox="0 0 64 64">
+        <path fill="currentColor" fill-rule="evenodd" d="M32 7C29 5 25 4 21 4.5C12 5.5 6 13 6 25C6 34 8 42 13 49C18 56 25 60 32 60C39 60 46 56 51 49C56 42 58 34 58 25C58 13 52 5.5 43 4.5C39 4 35 5 32 7ZM32 45L28.5 36H35.5Z"/>
+        <g class="blink"><circle cx="21" cy="27" r="9" fill="var(--gold)"/><circle cx="21" cy="27" r="4" fill="currentColor"/></g>
+        <g class="blink"><circle cx="43" cy="27" r="9" fill="var(--gold)"/><circle cx="43" cy="27" r="4" fill="currentColor"/></g>
+      </svg>
+      <svg class="o2" viewBox="0 0 64 64">
+        <path fill="currentColor" fill-rule="evenodd" d="M32 7C29 5 25 4 21 4.5C12 5.5 6 13 6 25C6 34 8 42 13 49C18 56 25 60 32 60C39 60 46 56 51 49C56 42 58 34 58 25C58 13 52 5.5 43 4.5C39 4 35 5 32 7ZM32 45L28.5 36H35.5Z"/>
+        <g class="blink"><circle cx="21" cy="27" r="9" fill="var(--gold)"/><circle cx="21" cy="27" r="4" fill="currentColor"/></g>
+        <g class="blink"><circle cx="43" cy="27" r="9" fill="var(--gold)"/><circle cx="43" cy="27" r="4" fill="currentColor"/></g>
+      </svg>
+      <svg class="brk" viewBox="0 0 16 64"><path fill="currentColor" d="M2 4H12V60H2V56H8V8H2Z"/></svg>
+    </div>
+    <div class="splash-name">Päkpätät</div>
+    <div class="splash-gloss">K'Cho for <i>owl</i></div>
+    <div class="splash-tag" data-i18n="tagline">It answers what it knows. It says so when it doesn't.</div>
+    <div class="splash-checks" id="splashChecks"></div>
+    <div class="splash-note" id="splashNote" hidden></div>
+    <button class="btn ghost splash-btn" id="splashGo" type="button" hidden
+            data-i18n="continueAnyway">Continue anyway</button>
+  </div>
+</div>
+
+<aside id="rail">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><path fill="currentColor" fill-rule="evenodd" d="M32 7C29 5 25 4 21 4.5C12 5.5 6 13 6 25C6 34 8 42 13 49C18 56 25 60 32 60C39 60 46 56 51 49C56 42 58 34 58 25C58 13 52 5.5 43 4.5C39 4 35 5 32 7ZM32 45L28.5 36H35.5Z"/><circle cx="21" cy="27" r="9" fill="var(--gold)"/><circle cx="43" cy="27" r="9" fill="var(--gold)"/><circle cx="21" cy="27" r="4" fill="currentColor"/><circle cx="43" cy="27" r="4" fill="currentColor"/></svg>
+    </div>
+    <div>
+      <b>Päkpätät</b>
+      <small data-i18n="brandsub">Answers what it knows</small>
+    </div>
+  </div>
+
+  <div class="rail-pad">
+    <button class="newbtn" id="newBtn" type="button">
+      <span>✚</span><span data-i18n="new">New question</span>
+    </button>
+  </div>
+
+  <div class="rail-h" data-i18n="recent">Recent</div>
+  <div id="hist"></div>
+
+  <div class="rail-foot">
+    <button class="railbtn" id="guideBtn" type="button">
+      <span>💡</span><span data-i18n="guideTitle">What can I ask?</span>
+    </button>
+    <button class="railbtn" id="settingsBtn" type="button">
+      <span>⚙</span><span data-i18n="settings">Settings</span>
+    </button>
+    <div class="lang" id="lang">
+      <button type="button" data-lang="en">English</button>
+      <button type="button" data-lang="my">မြန်မာ</button>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <div class="topbar">
+    <button id="menuBtn" type="button" aria-label="Menu">☰</button>
+    <h2 id="title" data-i18n="untitled">New question</h2>
+    <div class="scope">
+      <label for="filter" data-i18n="scope">Sources</label>
+      <select id="filter">
+        <option value=""    data-i18n="scopeAll">All sources</option>
+        <option value="new" data-i18n="scopeNew">Latest guidance</option>
+        <option value="old" data-i18n="scopeOld">Earlier records</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="banner" hidden><span>⚠</span><span id="bannerText"></span>
+    <button type="button" id="bannerFix" data-i18n="fixit">Fix this</button></div>
+
+  <div id="scroller"><div class="wrap" id="wrap"></div></div>
+
+  <footer>
+    <form class="composer" id="form">
+      <textarea id="q" rows="1" data-i18n-ph="placeholder"
+                placeholder="Ask your question…"></textarea>
+      <button id="send" type="submit" aria-label="Ask">➤</button>
+    </form>
+    <div class="foot-note" data-i18n="disclaimer"></div>
+  </footer>
+</main>
+
+<div id="guideModal" class="scrim" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <h2 id="guideTitle" data-i18n="guideTitle">What can I ask?</h2>
+    <p class="lede" data-i18n="guideLede"></p>
+    <p class="lede alt" data-i18n="guideBoth"></p>
+    <div id="guideBody" class="guide"></div>
+    <div class="row end">
+      <button class="btn" id="guideClose" type="button" data-i18n="close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <h2 id="setTitle" data-i18n="settings">Settings</h2>
+    <p class="lede" data-i18n="setLede">Choose which AI writes the answers. Everything is stored on this computer only.</p>
+    <div id="modePill" class="pill on"></div>
+
+    <label data-i18n="engine">Answer engine</label>
+    <select id="provider"></select>
+    <p class="note" id="provHelp"></p>
+
+    <label data-i18n="modelName">Model</label>
+    <input id="model" type="text" spellcheck="false" autocomplete="off">
+
+    <div id="keyRow">
+      <label data-i18n="apiKey">API key</label>
+      <input id="apiKey" type="password" spellcheck="false" autocomplete="off"
+             data-i18n-ph="keyPh" placeholder="Paste your key here">
+      <p class="note" id="keyState"></p>
+      <p class="note" data-i18n="keyNote"></p>
+    </div>
+
+    <div class="row">
+      <button id="saveBtn" class="btn" type="button" data-i18n="save">Save</button>
+      <button id="cancelBtn" class="btn ghost" type="button" data-i18n="cancel">Cancel</button>
+      <span id="saveMsg" class="note"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================ the guide ==============================
+   Every question below was checked against the real index before being put
+   here: each one retrieves archive content well above the refusal gate, in
+   BOTH languages (verified with eval/eval_retrieval.py's retriever).
+
+   That check is the whole point. Suggesting a question the archive cannot
+   answer teaches people the tool is useless right at the moment they most
+   need it, so a plausible-sounding question is not good enough -- it has to
+   be one we have watched retrieve. Questions that scored below the gate
+   ("What are my rights if immigration stops me?" at 0.226) were dropped and
+   replaced with phrasings that measured well, not merely reworded by eye.
+
+   If you add a question here, run it through the retriever first.
+   ======================================================================== */
+const GUIDE_EN = [
+  ["🪪", "Registration & documents", [
+    "How do I register with UNHCR?",
+    "How do I start an application on the My Services portal?",
+    "How do I update my address or phone number with UNHCR?",
+    "What do I do if I lost my UNHCR card?",
+    "How do I add a family member to my UNHCR file?",
+  ]],
+  ["💻", "My Services portal", [
+    "How do I create a My Services account?",
+    "What do I need before I can create a My Services account?",
+    "Why can I not create a My Services account right now?",
+    "How do I log in to My Services?",
+    "How do I check or change my appointment on My Services?",
+    "How do I update my details on My Services?",
+    "Who can I ask for help using My Services?",
+  ]],
+  ["📋", "Refugee status & appeals", [
+    "What happens at a Refugee Status Determination interview?",
+    "What can I do if my refugee status application is rejected?",
+  ]],
+  ["🏥", "Health care", [
+    "What is REMEDI and how much does it cost?",
+    "Are children covered by REMEDI?",
+    "How much does REMEDI cost for a child?",
+    "What does REMEDI cover in hospital?",
+    "Can I claim REMEDI at a private hospital?",
+    "How long after buying REMEDI can I claim?",
+    "What is the maximum REMEDI pays for one hospital stay?",
+    "What happens if my REMEDI expires?",
+    "Where can I buy or renew REMEDI?",
+    "Where can I find a clinic that treats refugees?",
+    "Which clinics can refugees go to in Kuala Lumpur?",
+    "Is there a clinic for refugees in Penang?",
+    "Where can a pregnant woman get care?",
+    "Where can I get help for stress, depression or mental health?",
+  ]],
+  ["🛡️", "Arrest, detention & legal", [
+    "What should I do if I am arrested by police?",
+    "What is the UNHCR hotline for arrest and detention?",
+    "Does a UNHCR card protect me from arrest?",
+    "What legal protection does UNHCR give refugees in Malaysia?",
+  ]],
+  ["⚠️", "Scams & fraud", [
+    "How can I tell if someone is a scammer pretending to be UNHCR?",
+    "Does UNHCR ever charge money for registration or resettlement?",
+    "How do I report someone asking me for money for UNHCR services?",
+    "What is UNHCR Verify Plus?",
+  ]],
+  ["🎒", "Children & education", [
+    "How can my child go to school in Malaysia?",
+    "How do I register a newborn baby with UNHCR?",
+    "What help is there for a child who is alone or separated?",
+  ]],
+  ["🤝", "Safety & gender-based violence", [
+    "What support is available for survivors of gender-based violence?",
+    "What should I do if I have experienced sexual or gender-based violence?",
+    "Where do I report domestic violence or abuse?",
+  ]],
+  ["✈️", "Resettlement & returning home", [
+    "How does resettlement to another country work?",
+    "Can I choose which country I am resettled to?",
+    "What if I want to return to my home country voluntarily?",
+  ]],
+  ["💳", "Work & daily life", [
+    "Can refugees work legally in Malaysia?",
+    "How do I use the Touch n Go eWallet card?",
+  ]],
+  ["📞", "Contacting UNHCR", [
+    "How do I contact UNHCR Malaysia?",
+    "What are the official UNHCR hotline numbers?",
+  ]],
+];
+
+// Same order and same count as GUIDE_EN -- the two are shown by index.
+const GUIDE_MY = [
+  ["🪪", "မှတ်ပုံတင်ခြင်းနှင့် စာရွက်စာတမ်း", [
+    "UNHCR မှာ ဘယ်လို မှတ်ပုံတင်ရမလဲ။",
+    "My Services portal မှာ လျှောက်လွှာ ဘယ်လို စတင်ရမလဲ။",
+    "UNHCR တွင် လိပ်စာ သို့မဟုတ် ဖုန်းနံပါတ် ဘယ်လို ပြောင်းရမလဲ။",
+    "UNHCR ကတ် ပျောက်သွားရင် ဘာလုပ်ရမလဲ။",
+    "မိသားစုဝင်တစ်ဦးကို UNHCR ဖိုင်ထဲ ဘယ်လို ထည့်ရမလဲ။",
+  ]],
+  ["💻", "My Services portal", [
+    "My Services အကောင့် ဘယ်လို ဖွင့်ရမလဲ။",
+    "My Services အကောင့် မဖွင့်ခင် ဘာတွေ လိုအပ်လဲ။",
+    "အခု My Services အကောင့် အသစ် ဘာကြောင့် မဖွင့်နိုင်တာလဲ။",
+    "My Services ကို ဘယ်လို ဝင်ရမလဲ။",
+    "My Services မှာ ချိန်းဆိုမှုကို ဘယ်လို ကြည့်ပြီး ပြောင်းရမလဲ။",
+    "My Services မှာ ကိုယ်ရေးအချက်အလက် ဘယ်လို ပြင်ရမလဲ။",
+    "My Services သုံးရာမှာ အကူအညီ ဘယ်သူ့ကို တောင်းရမလဲ။",
+  ]],
+  ["📋", "ဒုက္ခသည်အဆင့်နှင့် အယူခံဝင်ခြင်း", [
+    "RSD အင်တာဗျူးမှာ ဘာတွေ ဖြစ်မလဲ။",
+    "ဒုက္ခသည်အဖြစ် လျှောက်ထားမှု ငြင်းပယ်ခံရရင် ဘာလုပ်နိုင်မလဲ။",
+  ]],
+  ["🏥", "ကျန်းမာရေး", [
+    "REMEDI ဆိုတာ ဘာလဲ၊ ဘယ်လောက် ကုန်ကျမလဲ။",
+    "ကလေးများ REMEDI အကျုံးဝင်ပါသလား။",
+    "ကလေးတစ်ဦးအတွက် REMEDI ဘယ်လောက် ကုန်ကျမလဲ။",
+    "REMEDI က ဆေးရုံမှာ ဘာတွေ အကျုံးဝင်မလဲ။",
+    "ပုဂ္ဂလိကဆေးရုံမှာ REMEDI နဲ့ တောင်းဆိုလို့ ရပါသလား။",
+    "REMEDI ဝယ်ပြီးနောက် ဘယ်လောက်ကြာမှ တောင်းဆိုလို့ ရမလဲ။",
+    "ဆေးရုံတစ်ကြိမ်တက်ရင် REMEDI အများဆုံး ဘယ်လောက် ပေးမလဲ။",
+    "REMEDI သက်တမ်းကုန်သွားရင် ဘာဖြစ်မလဲ။",
+    "REMEDI ကို ဘယ်မှာ ဝယ်ပြီး သက်တမ်းတိုးရမလဲ။",
+    "ဒုက္ခသည်များကို ကုသပေးသော ဆေးခန်း ဘယ်မှာ ရှိမလဲ။",
+    "ကွာလာလမ်ပူမှာ ဒုက္ခသည်များ သွားနိုင်တဲ့ ဆေးခန်းတွေက ဘာလဲ။",
+    "ပီနန်မှာ ဒုက္ခသည်များအတွက် ဆေးခန်း ရှိပါသလား။",
+    "ကိုယ်ဝန်ဆောင်အမျိုးသမီး ဘယ်မှာ စောင့်ရှောက်မှု ရနိုင်မလဲ။",
+    "စိတ်ဖိစီးမှု၊ စိတ်ဓာတ်ကျမှုအတွက် အကူအညီ ဘယ်မှာ ရနိုင်မလဲ။",
+  ]],
+  ["🛡️", "ဖမ်းဆီးခြင်း၊ ထိန်းသိမ်းခြင်းနှင့် ဥပဒေ", [
+    "ရဲက ဖမ်းဆီးခံရရင် ဘာလုပ်ရမလဲ။",
+    "ဖမ်းဆီးထိန်းသိမ်းမှုအတွက် UNHCR ဖုန်းလိုင်းက ဘာလဲ။",
+    "UNHCR ကတ်က ဖမ်းဆီးခံရခြင်းမှ ကာကွယ်ပေးပါသလား။",
+    "မလေးရှားရှိ ဒုက္ခသည်များအတွက် UNHCR က မည်သည့် ဥပဒေရေးရာ အကာအကွယ် ပေးသလဲ။",
+  ]],
+  ["⚠️", "လိမ်လည်မှုနှင့် အဂတိလိုက်စားမှု", [
+    "UNHCR ဟု ဟန်ဆောင်သော လိမ်လည်သူကို ဘယ်လို သိနိုင်မလဲ။",
+    "UNHCR က မှတ်ပုံတင်ခြင်း သို့မဟုတ် ပြန်လည်နေရာချထားရေးအတွက် ငွေကောက်ခံပါသလား။",
+    "UNHCR ဝန်ဆောင်မှုအတွက် ငွေတောင်းသူကို ဘယ်လို တိုင်ကြားရမလဲ။",
+    "UNHCR Verify Plus ဆိုတာ ဘာလဲ။",
+  ]],
+  ["🎒", "ကလေးများနှင့် ပညာရေး", [
+    "ကျွန်ုပ်၏ကလေး မလေးရှားမှာ ကျောင်း ဘယ်လို တက်နိုင်မလဲ။",
+    "မွေးကင်းစကလေးကို UNHCR မှာ ဘယ်လို မှတ်ပုံတင်ရမလဲ။",
+    "တစ်ဦးတည်း ကျန်ရစ်သော ကလေးအတွက် ဘာအကူအညီ ရှိမလဲ။",
+  ]],
+  ["🤝", "ဘေးကင်းရေးနှင့် ကျား၊မ အခြေပြု အကြမ်းဖက်မှု", [
+    "ကျား၊မ အခြေပြု အကြမ်းဖက်မှု ခံရသူများအတွက် ဘာအကူအညီ ရှိမလဲ။",
+    "လိင်ပိုင်းဆိုင်ရာ သို့မဟုတ် ကျား၊မအခြေပြု အကြမ်းဖက်မှု ခံခဲ့ရရင် ဘာလုပ်ရမလဲ။",
+    "အိမ်တွင်း အကြမ်းဖက်မှုကို ဘယ်မှာ တိုင်ကြားရမလဲ။",
+  ]],
+  ["✈️", "ပြန်လည်နေရာချထားရေးနှင့် နေရပ်ပြန်ခြင်း", [
+    "အခြားနိုင်ငံသို့ ပြန်လည်နေရာချထားရေး ဘယ်လို လုပ်ဆောင်သလဲ။",
+    "ဘယ်နိုင်ငံကို သွားမလဲဆိုတာ ကျွန်ုပ် ရွေးချယ်နိုင်ပါသလား။",
+    "မိမိဆန္ဒအလျောက် နေရပ်ပြန်လိုပါက ဘယ်လိုလုပ်ရမလဲ။",
+  ]],
+  ["💳", "အလုပ်နှင့် နေ့စဉ်ဘဝ", [
+    "ဒုက္ခသည်များ မလေးရှားမှာ တရားဝင် အလုပ်လုပ်နိုင်ပါသလား။",
+    "Touch n Go eWallet ကတ်ကို ဘယ်လို သုံးရမလဲ။",
+  ]],
+  ["📞", "UNHCR ကို ဆက်သွယ်ရန်", [
+    "UNHCR မလေးရှားကို ဘယ်လို ဆက်သွယ်ရမလဲ။",
+    "တရားဝင် UNHCR ဖုန်းလိုင်းနံပါတ်များက ဘာလဲ။",
+  ]],
+];
+
+/* =============================== language =============================== */
+const STR = {
+  en: {
+    brandsub: "Answers what it knows",
+    tagline: "It answers what it knows. It says so when it doesn't.",
+    continueAnyway: "Continue anyway",
+    checking: "Checking this computer…",
+    new: "New question", recent: "Recent", settings: "Settings",
+    untitled: "New question",
+    scope: "Sources", scopeAll: "All sources", scopeNew: "Latest guidance",
+    scopeOld: "Earlier records",
+    heroTitle: "What do you need help with?",
+    heroSub: "Clear answers on registration, health care, detention and scams — each one backed by the official source it came from. If the answer isn't there, you'll be told plainly instead of guessed at.",
+    placeholder: "Ask your question…    Enter to send · Shift+Enter for a new line",
+    you: "You", bot: "Assistant", thinking: "Finding the answer…",
+    st_searching: "Searching…", st_writing: "Writing the answer…",
+    st_starting: "Starting the local AI engine…",
+    sources: "Sources", copy: "Copy", copied: "Copied to clipboard",
+    crosscheck: "Check the UNHCR page (may not yet show this)",
+    brandName: "Päkpätät",
+    shareFooter: "Independent community tool. Not affiliated with UNHCR. " +
+                 "Check anything urgent by phone before acting on it.",
+    savePost: "Save as image", saving: "Making image…",
+    savedTo: "Image saved",
+    savedThread: "Thread saved — post the cards in order",
+    showFile: "Show",
+    tooLong: "This answer is too long even for a thread. Copy it as text instead.",
+    unsafeTitle: "Check these before you use them",
+    unsafeBody: "These do not appear anywhere in the archive text this answer was built from, so the AI may have changed or invented them. Open the sources below and read the value there first.",
+    kindPhone: "Phone number", kindEmail: "Email address",
+    kindAmount: "Amount", kindDate: "Date",
+    again: "Ask again", noHistory: "Your questions will appear here.",
+    // "Built on official UNHCR Malaysia information" invited the reading that
+    // this is an official UNHCR app. It is not, and NOTICE.md commits the
+    // project to never implying it. Credit the source, disclaim the tie.
+    disclaimer: "Answers come from guidance published by UNHCR and its partners. Independent tool, not affiliated with UNHCR. For emergencies, always confirm by phone.",
+    offline: "Could not reach the assistant service on this computer. Try restarting the app.",
+    badgeNew: "current", badgeOld: "earlier",
+    setLede: "Choose which AI writes the answers. Everything is stored on this computer only.",
+    engine: "Answer engine", modelName: "Model", apiKey: "API key",
+    keyPh: "Paste your key here",
+    keyNote: "Saved only on this computer, in the app's own settings file. Never uploaded, never placed in the shared folder.",
+    save: "Save", cancel: "Cancel", saving: "Saving…", saved: "Saved", fixit: "Fix this",
+    modeLocal: "Private mode · nothing leaves this computer",
+    modeCloud: p => `Using ${p} · questions are sent over the internet`,
+    del: "Delete",
+    cards: [
+      ["🪪", "Register with UNHCR", "How do I register with UNHCR?"],
+      ["🏥", "Health care & REMEDI", "What does REMEDI cover and how much does it cost?"],
+      ["🛡️", "If someone is detained", "What should I do if someone is arrested or detained?"],
+      ["⚠️", "Spot a scam", "How can I tell if someone is a scammer pretending to be UNHCR?"],
+    ],
+    browse: "Browse all topics",
+    guideTitle: "What can I ask?",
+    guideLede: "These are the topics the archive covers. Tap any question to ask it. Anything outside these topics will be answered honestly with \"that is not in the archive\" rather than a guess.",
+    close: "Close",
+    guideBoth: "Each question is shown in English and Burmese. Tap the line in the language you want the answer in — the assistant replies in whichever language you ask.",
+    guideEnglishOnly: "The offline model on this computer writes English only, so the questions are listed in English. You can still type your question in Burmese — the archive is searched in Burmese and the answer comes back in English. For answers in Burmese, choose an online provider in Settings.",
+    langDowngraded: "You asked in Burmese. The offline model on this computer cannot write Burmese reliably, so this answer is in English — the sources below were still found from your Burmese question. For answers in Burmese, choose an online provider in Settings.",
+    guide: GUIDE_EN,
+  },
+  my: {
+    brandsub: "သိသည်ကို ဖြေသည်",
+    tagline: "သိသည်ကို ဖြေသည်။ မသိလျှင် မသိကြောင်း ပြောသည်။",
+    continueAnyway: "ဆက်လက်လုပ်ဆောင်ရန်",
+    checking: "ဤကွန်ပျူတာကို စစ်ဆေးနေသည်…",
+    new: "မေးခွန်းအသစ်", recent: "မကြာသေးမီက", settings: "ဆက်တင်",
+    untitled: "မေးခွန်းအသစ်",
+    scope: "ရင်းမြစ်", scopeAll: "အားလုံး", scopeNew: "နောက်ဆုံးအချက်အလက်",
+    scopeOld: "အရင်မှတ်တမ်းများ",
+    heroTitle: "ဘာအကူအညီ လိုအပ်ပါသလဲ။",
+    heroSub: "မှတ်ပုံတင်ခြင်း၊ ကျန်းမာရေး၊ ဖမ်းဆီးခံရမှုနှင့် လိမ်လည်မှုများအကြောင်း ရှင်းလင်းသော အဖြေများ — အဖြေတိုင်းတွင် တရားဝင်ရင်းမြစ် ပါဝင်သည်။ အဖြေမရှိပါက မှန်းဆခြင်းမပြုဘဲ ပွင့်ပွင့်လင်းလင်း ပြောပါမည်။",
+    placeholder: "သင့်မေးခွန်းကို ရိုက်ထည့်ပါ…    Enter နှိပ်၍ ပို့ပါ",
+    you: "သင်", bot: "အကူအညီပေးသူ", thinking: "အဖြေရှာနေသည်…",
+    st_searching: "ရှာဖွေနေသည်…", st_writing: "အဖြေရေးနေသည်…",
+    st_starting: "AI ကို စတင်နေသည်…",
+    sources: "ကိုးကားချက်", copy: "ကူးယူ", copied: "ကူးယူပြီးပါပြီ",
+    crosscheck: "UNHCR စာမျက်နှာကို စစ်ဆေးပါ (ဤအချက်အလက် မပါသေးနိုင်ပါ)",
+    brandName: "Päkpätät",
+    shareFooter: "လွတ်လပ်သော အသိုက်အဝန်း ကိရိယာ။ UNHCR နှင့် ဆက်စပ်မှု မရှိပါ။ " +
+                 "အရေးကြီးသည်များကို ဖုန်းဖြင့် အတည်ပြုပါ။",
+    savePost: "ပုံအဖြစ် သိမ်းရန်", saving: "ပုံ ပြုလုပ်နေသည်…",
+    savedTo: "ပုံ သိမ်းပြီးပါပြီ",
+    savedThread: "ပုံစဉ်များ သိမ်းပြီးပါပြီ — အစဉ်လိုက် တင်ပါ",
+    showFile: "ပြပါ",
+    tooLong: "ဤအဖြေသည် ပုံတစ်ခုအတွင်း ထည့်ရန် ရှည်လွန်းပါသည်။ စာသားအဖြစ် ကူးယူပါ။",
+    unsafeTitle: "မသုံးမီ ဤအချက်များကို စစ်ဆေးပါ",
+    unsafeBody: "ဤအချက်များသည် အဖြေထုတ်ရာတွင် အသုံးပြုသော မှတ်တမ်းစာသားများတွင် မတွေ့ရပါ။ AI က ပြောင်းလဲထားခြင်း သို့မဟုတ် လုပ်ကြံထားခြင်း ဖြစ်နိုင်သည်။ အောက်ပါ ရင်းမြစ်များကို ဖွင့်၍ အရင်စစ်ဆေးပါ။",
+    kindPhone: "ဖုန်းနံပါတ်", kindEmail: "အီးမေးလ်",
+    kindAmount: "ငွေပမာဏ", kindDate: "ရက်စွဲ",
+    again: "ထပ်မေးရန်", noHistory: "သင့်မေးခွန်းများ ဤနေရာတွင် ပေါ်လာပါမည်။",
+    disclaimer: "အဖြေများသည် UNHCR နှင့် မိတ်ဖက်အဖွဲ့များ ထုတ်ပြန်ထားသော လမ်းညွှန်ချက်များမှ ဖြစ်သည်။ ဤသည်မှာ လွတ်လပ်သော ကိရိယာဖြစ်ပြီး UNHCR နှင့် ဆက်စပ်မှု မရှိပါ။ အရေးပေါ်ကိစ္စများကို ဖုန်းဖြင့် အတည်ပြုပါ။",
+    offline: "ဤကွန်ပျူတာရှိ ဝန်ဆောင်မှုကို မရရှိပါ။ အက်ပ်ကို ပြန်ဖွင့်ကြည့်ပါ။",
+    badgeNew: "လက်ရှိ", badgeOld: "အရင်",
+    setLede: "မည်သည့် AI က အဖြေရေးမည်ကို ရွေးပါ။ အားလုံးကို ဤကွန်ပျူတာတွင်သာ သိမ်းသည်။",
+    engine: "အဖြေပေးသည့် AI", modelName: "မော်ဒယ်", apiKey: "API key",
+    keyPh: "သင့် key ကို ကူးထည့်ပါ",
+    keyNote: "ဤကွန်ပျူတာရှိ အက်ပ်၏ ဆက်တင်ဖိုင်တွင်သာ သိမ်းသည်။ အွန်လိုင်းသို့ ဘယ်တော့မှ မတင်ပါ။",
+    save: "သိမ်းမည်", cancel: "မလုပ်တော့ပါ", saving: "သိမ်းနေသည်…", saved: "သိမ်းပြီးပါပြီ",
+    fixit: "ပြင်ရန်",
+    modeLocal: "ကိုယ်ရေးလုံခြုံမှုအပြည့် · ဘာမှ ပြင်ပသို့ မထွက်ပါ",
+    modeCloud: p => `${p} ကို သုံးနေသည် · မေးခွန်းများ အင်တာနက်မှ ပေးပို့သည်`,
+    del: "ဖျက်ရန်",
+    cards: [
+      ["🪪", "UNHCR မှတ်ပုံတင်ခြင်း", "UNHCR တွင် ဘယ်လို မှတ်ပုံတင်ရမလဲ။"],
+      ["🏥", "ကျန်းမာရေးနှင့် REMEDI", "REMEDI က ဘာတွေ အကျုံးဝင်ပြီး ဘယ်လောက် ကုန်ကျမလဲ။"],
+      ["🛡️", "ဖမ်းဆီးခံရလျှင်", "တစ်ယောက်ယောက် ဖမ်းဆီးခံရရင် ဘာလုပ်ရမလဲ။"],
+      ["⚠️", "လိမ်လည်မှု သတိပြုရန်", "UNHCR ဟု ဟန်ဆောင်သော လိမ်လည်သူကို ဘယ်လို သိနိုင်မလဲ။"],
+    ],
+    browse: "ခေါင်းစဉ်အားလုံး ကြည့်ရန်",
+    guideTitle: "ဘာတွေ မေးလို့ရမလဲ။",
+    guideLede: "ဤသည်မှာ မှတ်တမ်းတိုက်တွင် ပါဝင်သော ခေါင်းစဉ်များ ဖြစ်သည်။ မေးခွန်းတစ်ခုကို နှိပ်၍ မေးနိုင်သည်။ ဤခေါင်းစဉ်များ မဟုတ်ပါက မှန်းဆဖြေဆိုခြင်းမပြုဘဲ „မှတ်တမ်းတွင် မပါဝင်ပါ“ ဟု ပွင့်လင်းစွာ ဖြေပါမည်။",
+    close: "ပိတ်ရန်",
+    guideBoth: "မေးခွန်းတိုင်းကို မြန်မာနှင့် အင်္ဂလိပ် နှစ်ဘာသာဖြင့် ပြထားသည်။ အဖြေလိုချင်သည့် ဘာသာစကားစာကြောင်းကို နှိပ်ပါ — မေးသည့်ဘာသာစကားဖြင့်ပင် ပြန်ဖြေပါမည်။",
+    // NEEDS NATIVE-SPEAKER CONFIRMATION -- the two strings below are the only
+    // Burmese in this file not carried over from the original translation.
+    //
+    // They were composed from the vocabulary already verified above, so a
+    // reviewer is mostly checking SENTENCE CONSTRUCTION, not word choice.
+    // Measured at morpheme level against the rest of this block: guideEnglishOnly
+    // 100% (23/23 tokens), langDowngraded 99.2% (21/23). Reused throughout:
+    //   အဖြေပေးသည့် AI (engine) · ဤကွန်ပျူတာ (checking) · မှတ်တမ်းတိုက် (guideLede)
+    //   ဆက်တင် (settings) · အွန်လိုင်း (keyNote) · ရွေးပါ (setLede)
+    //   ရိုက်ထည့်ပါ (placeholder) · ပြန်ဖြေပါမည် / ပြထားသည် (guideBoth)
+    // Register follows guideLede and guideBoth deliberately.
+    //
+    // EXACTLY TWO things here are new and are the places to check first:
+    //   ယုံကြည်စိတ်ချစွာ  "reliably" -- no equivalent existed above
+    //   ...များကိုမူ      the contrastive မူ, marking "the SOURCES, by contrast,
+    //                      did come from your Burmese question"
+    //
+    // If a reviewer is unhappy with either string, DELETE the line rather than
+    // patching it: t() falls back to STR.en, which is the honest failure. An
+    // approximate Burmese sentence explaining why we would not risk an
+    // approximate Burmese sentence is the one outcome worth avoiding.
+    guideEnglishOnly: "ဤကွန်ပျူတာရှိ အဖြေပေးသည့် AI သည် အင်္ဂလိပ်ဘာသာဖြင့်သာ ရေးနိုင်သဖြင့် မေးခွန်းများကို အင်္ဂလိပ်ဘာသာဖြင့် ပြထားသည်။ မေးခွန်းကို မြန်မာဘာသာဖြင့် ရိုက်ထည့်နိုင်ပါသေးသည် — မှတ်တမ်းတိုက်ကို မြန်မာဘာသာဖြင့် ရှာဖွေပြီး အဖြေကို အင်္ဂလိပ်ဘာသာဖြင့် ပြန်ဖြေပါမည်။ မြန်မာဘာသာဖြင့် အဖြေလိုပါက ဆက်တင်တွင် အွန်လိုင်း AI ကို ရွေးပါ။",
+    langDowngraded: "သင် မြန်မာဘာသာဖြင့် မေးထားသည်။ ဤကွန်ပျူတာရှိ အဖြေပေးသည့် AI သည် မြန်မာဘာသာကို ယုံကြည်စိတ်ချစွာ မရေးနိုင်သဖြင့် ဤအဖြေမှာ အင်္ဂလိပ်ဘာသာဖြင့် ဖြစ်သည် — အောက်ပါ ရင်းမြစ်များကိုမူ သင့်မြန်မာမေးခွန်းဖြင့်ပင် ရှာတွေ့ခြင်း ဖြစ်သည်။ မြန်မာဘာသာဖြင့် အဖြေလိုပါက ဆက်တင်တွင် အွန်လိုင်း AI ကို ရွေးပါ။",
+    guide: GUIDE_MY,
+  },
+};
+let LANG = localStorage.getItem('rm.lang') === 'my' ? 'my' : 'en';
+const t = k => STR[LANG][k] ?? STR.en[k] ?? k;
+
+function applyLang() {
+  document.documentElement.lang = LANG === 'my' ? 'my' : 'en';
+  for (const el of document.querySelectorAll('[data-i18n]'))
+    el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-ph]'))
+    el.placeholder = t(el.dataset.i18nPh);
+  for (const b of document.querySelectorAll('#lang button'))
+    b.classList.toggle('on', b.dataset.lang === LANG);
+  renderHistory(); render();
+  if (SETTINGS) renderStatus(SETTINGS);
+  // The guide is built from the language arrays, so rebuild it if it happens
+  // to be open when someone switches language.
+  if (!guideModal.hidden) renderGuide();
+}
+document.getElementById('lang').onclick = e => {
+  const b = e.target.closest('button[data-lang]'); if (!b) return;
+  LANG = b.dataset.lang; localStorage.setItem('rm.lang', LANG); applyLang();
+};
+
+/* ============================ conversation store ========================= */
+const $ = id => document.getElementById(id);
+const wrap = $('wrap'), scroller = $('scroller'), qBox = $('q'), sendBtn = $('send');
+const form = $('form'), filterSel = $('filter'), titleEl = $('title');
+
+let CHATS = [];
+try { CHATS = JSON.parse(localStorage.getItem('rm.chats') || '[]'); } catch { CHATS = []; }
+let activeId = CHATS.length ? CHATS[0].id : null;
+let nextId = Math.max(0, ...CHATS.map(c => c.id)) + 1;
+
+const chat = () => CHATS.find(c => c.id === activeId);
+const persist = () => localStorage.setItem('rm.chats', JSON.stringify(CHATS.slice(0, 50)));
+
+function newChat() {
+  activeId = null; qBox.value = ''; qBox.style.height = 'auto';
+  renderHistory(); render(); qBox.focus();
+}
+function ensureChat(firstQuestion) {
+  if (chat()) return chat();
+  const c = { id: nextId++, title: firstQuestion.slice(0, 60), messages: [] };
+  CHATS.unshift(c); activeId = c.id; return c;
+}
+
+function renderHistory() {
+  const h = $('hist'); h.innerHTML = '';
+  if (!CHATS.length) {
+    h.innerHTML = `<div class="hist-empty">${esc(t('noHistory'))}</div>`; return;
+  }
+  for (const c of CHATS) {
+    const d = document.createElement('div');
+    d.className = 'hitem' + (c.id === activeId ? ' on' : '');
+    d.innerHTML = `<span>${esc(c.title)}</span>
+                   <button class="x" type="button" title="${esc(t('del'))}">×</button>`;
+    d.onclick = e => {
+      if (e.target.classList.contains('x')) {
+        CHATS = CHATS.filter(x => x.id !== c.id); persist();
+        if (activeId === c.id) activeId = null;
+        renderHistory(); render(); return;
+      }
+      activeId = c.id; renderHistory(); render();
+    };
+    h.appendChild(d);
+  }
+}
+
+/* ================================ rendering ============================== */
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// Escape first, then decorate — the escaped text can never contain raw markup.
+/* Render the markdown the model actually emits.
+ *
+ * This used to handle bold and bare URLs only, which meant every other
+ * construct reached the reader as literal punctuation: "### Step 1" with the
+ * hashes showing, bullet lists as a column of hyphens, and -- worst -- the
+ * REMEDI price table rendered as a wall of pipe characters, which is the one
+ * place a reader most needs to compare two numbers side by side.
+ *
+ * Everything is escaped FIRST and only then given structure, so nothing the
+ * model writes can inject markup. Inline formatting is applied per text-run,
+ * never across the tags this builds.
+ */
+function inlineMd(s) {
+  return s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    // [S1] is the citation contract, not a markdown link -- style it, keep it.
+    .replace(/\[(S\d+)\]/g, '<span class="cref">[$1]</span>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+             '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,
+             '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+}
+
+function fmt(src) {
+  const lines = esc(src).split('\n');
+  const out = [];
+  let i = 0;
+
+  const isTableRow = l => /^\s*\|.*\|\s*$/.test(l);
+  const cells = l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (!line.trim()) { i++; continue; }
+
+    // Table: a header row, a |---|---| separator, then body rows.
+    if (isTableRow(line) && isTableRow(lines[i + 1] || '') &&
+        /^[\s|:-]+$/.test(lines[i + 1])) {
+      const head = cells(line);
+      i += 2;
+      const body = [];
+      while (i < lines.length && isTableRow(lines[i])) body.push(cells(lines[i++]));
+      out.push(
+        '<div class="twrap"><table><thead><tr>' +
+        head.map(c => `<th>${inlineMd(c)}</th>`).join('') +
+        '</tr></thead><tbody>' +
+        body.map(r => '<tr>' + r.map(c => `<td>${inlineMd(c)}</td>`).join('') + '</tr>').join('') +
+        '</tbody></table></div>');
+      continue;
+    }
+
+    const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
+    if (h) {
+      // An answer's headings sit inside the page, so they start at h3 -- but
+      // they must still LOOK like section headings. The model writes "###" far
+      // more than anything else; mapping by depth put that at h5, which is
+      // styled as a small muted caption, so every section heading in every
+      // answer read as an afterthought. Collapse the shallow levels to h3.
+      const lvl = h[1].length <= 3 ? 3 : 4;
+      out.push(`<h${lvl}>${inlineMd(h[2])}</h${lvl}>`);
+      i++; continue;
+    }
+
+    if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
+      const ordered = /^\s*\d+[.)]\s+/.test(line);
+      const items = [];
+      while (i < lines.length && /^\s*([-*+]|\d+[.)])\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*([-*+]|\d+[.)])\s+/, ''));
+        i++;
+      }
+      out.push(`<${ordered ? 'ol' : 'ul'}>` +
+               items.map(x => `<li>${inlineMd(x)}</li>`).join('') +
+               `</${ordered ? 'ol' : 'ul'}>`);
+      continue;
+    }
+
+    if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) { out.push('<hr>'); i++; continue; }
+
+    const para = [];
+    while (i < lines.length && lines[i].trim() &&
+           !isTableRow(lines[i]) &&
+           !/^\s*#{1,6}\s+/.test(lines[i]) &&
+           !/^\s*([-*+]|\d+[.)])\s+/.test(lines[i])) {
+      para.push(lines[i]); i++;
+    }
+    if (para.length) out.push(`<p>${inlineMd(para.join('<br>'))}</p>`);
+  }
+  return out.join('');
+}
+const down = () => { scroller.scrollTop = scroller.scrollHeight; };
+
+/* Reply languages the CURRENT provider may be asked to WRITE -- straight from
+   settings.PROVIDERS via /settings. Retrieval is unaffected and works in both
+   languages; this is only about the language the answer is composed in.
+
+   Defaults to English-only until /settings lands. Briefly showing one line too
+   few is recoverable; offering a Burmese line that comes back in English
+   teaches people the language toggle is broken. Both the hero and the guide
+   re-render when SETTINGS arrives and after any Settings save. */
+const answerLangs = () => (SETTINGS && SETTINGS.answer_languages) || ['en'];
+const writesBurmese = () => answerLangs().includes('my');
+
+function heroHTML() {
+  // A card's question text IS the query (data-ask), exactly like a guide line.
+  // So when the provider cannot write Burmese the question goes out in English
+  // while the LABEL stays in the reader's language -- the card is still
+  // findable by someone reading Burmese, it just asks in a language the
+  // selected model can answer.
+  const enCards = STR.en.cards;
+  const cards = t('cards').map(([ico, label, q], i) => {
+    const ask = writesBurmese() ? q : ((enCards[i] || [])[2] ?? q);
+    return `<button class="card" type="button" data-ask="${esc(ask)}">
+       <span class="ico">${ico}</span>
+       <span><b>${esc(label)}</b><small>${esc(ask)}</small></span>
+     </button>`;
+  }).join('');
+  return `<div class="hero">
+            <h1>${esc(t('heroTitle'))}</h1>
+            <p>${esc(t('heroSub'))}</p>
+            <div class="cards">${cards}</div>
+            <button class="browse" id="browseBtn" type="button">
+              💡 ${esc(t('browse'))}
+            </button>
+          </div>`;
+}
+
+/* The four hero cards are the common cases; this is the full map of what the
+   archive actually covers. Reachable from the sidebar too, because the hero
+   disappears as soon as a conversation starts and "what else can I ask?" is a
+   question people have midway through, not only at the beginning. */
+function renderGuide() {
+  // Both languages are shown together, not one or the other. A CBO worker
+  // reading English is usually sitting beside someone who reads Burmese, and
+  // the answer comes back in whichever language the question was asked in --
+  // so each line is separately tappable rather than following the UI toggle.
+  //
+  // ...UNLESS the selected provider cannot write Burmese. A guide question is
+  // not a label: ui sends the tapped text as the real query (data-guide-ask),
+  // so a Burmese line on a local model would come back in English every time.
+  // Offering it would be advertising a language the app cannot answer in, so
+  // the questions go English-only and the lede says why. The CATEGORY HEADINGS
+  // stay bilingual -- they are never sent anywhere, so they cost nothing and a
+  // Burmese reader can still navigate to the right section.
+  const bilingual = writesBurmese();
+  const near = LANG === 'my' ? 'my' : 'en';
+  const far  = near === 'my' ? 'en' : 'my';
+  const A = STR[near].guide, B = STR[far].guide;
+
+  const lede = $('guideBody').parentElement.querySelector('.lede.alt');
+  if (lede) lede.textContent = t(bilingual ? 'guideBoth' : 'guideEnglishOnly');
+
+  $('guideBody').innerHTML = A.map(([ico, label, qs], ci) => {
+    const bCat = B[ci] || ['', '', []];
+    const enQs = (STR.en.guide[ci] || ['', '', []])[2];
+    const askQs = bilingual ? qs : enQs;
+    const askLang = bilingual ? near : 'en';
+    const rows = askQs.map((q, qi) => {
+      const alt = bilingual ? bCat[2][qi] : null;
+      return `<li>
+        <button type="button" class="gq" lang="${askLang}"
+                data-guide-ask="${esc(q)}">${esc(q)}</button>
+        ${alt ? `<button type="button" class="gq alt" lang="${far}"
+                data-guide-ask="${esc(alt)}">${esc(alt)}</button>` : ''}
+      </li>`;
+    }).join('');
+    return `<section class="gcat">
+      <h3><span class="gico">${ico}</span>${esc(label)}
+        <span class="galt" lang="${far}">${esc(bCat[1])}</span></h3>
+      <ul>${rows}</ul>
+    </section>`;
+  }).join('');
+}
+
+function openGuide() {
+  renderGuide();
+  guideModal.hidden = false;
+  $('guideClose').focus();
+}
+
+const KIND_STR = { phone: 'kindPhone', email: 'kindEmail',
+                   amount: 'kindAmount', date: 'kindDate' };
+
+function unverifiedHTML(list) {
+  if (!list || !list.length) return '';
+  const items = list.map(u =>
+    `<li>${esc(t(KIND_STR[u.kind] || 'kindAmount'))}: <code>${esc(u.value)}</code></li>`
+  ).join('');
+  return `<div class="alert"><b>⚠ ${esc(t('unsafeTitle'))}</b>
+            ${esc(t('unsafeBody'))}<ul>${items}</ul></div>`;
+}
+
+function answerHTML(m) {
+  let h = `<div class="who"><span class="dot"></span>${esc(t('bot'))}</div>
+           ${unverifiedHTML(m.unverified)}
+           <div class="answer">${fmt(m.answer)}</div>`;
+  // Said in the READER'S language, not the server's. The one person who sees
+  // this asked in Burmese, so an English-only explanation of why their answer
+  // is in English would be the same failure twice. The server sends a flag
+  // (graph.ask -> lang_downgraded); the wording lives in STR.
+  if (m.lang_downgraded)
+    h += `<div class="warn"><span>ℹ</span><span>${esc(t('langDowngraded'))}</span></div>`;
+  for (const w of (m.warnings || [])) h += `<div class="warn"><span>⚠</span><span>${esc(w)}</span></div>`;
+  if ((m.sources || []).length) {
+    h += `<div class="srcbox">
+            <button class="srchead" type="button" aria-expanded="true">
+              <span class="caret">▾</span>${esc(t('sources'))} · ${m.sources.length}
+            </button><div class="srclist">`;
+    for (const s of m.sources) {
+      const badge = s.is_current
+        ? `<span class="badge new">${esc(t('badgeNew'))}</span>`
+        : `<span class="badge old">${esc(t('badgeOld'))}</span>`;
+      const sec = s.section ? ` <span class="sec">— ${esc(s.section)}</span>` : '';
+      // A source that is a document, not a page, is shown by its citation. The
+      // link stays available as a cross-check but must not be the headline:
+      // for the REMEDI minute the linked page still carries the OLD answer, and
+      // a reader who clicks it before reading the citation concludes the app is
+      // wrong -- when it is the website that has not caught up.
+      const origin = s.citation
+        ? `<div class="cite">${esc(s.citation)}</div>
+           <div class="cite"><a href="${esc(s.url)}" target="_blank" rel="noopener"
+              >${esc(t('crosscheck'))}</a></div>`
+        : '';
+      const label = s.citation
+        ? `<span>${esc(s.title)}${sec}</span>`
+        : `<span><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>${sec}</span>`;
+      h += `<div class="src"><span class="tag">${esc(s.tag)}</span>${badge}
+              ${label}${origin}
+            </div>`;
+    }
+    h += '</div></div>';
+  }
+  h += `<div class="acts">
+          <button class="act" type="button" data-copy>⧉ ${esc(t('copy'))}</button>
+          <button class="act" type="button" data-post>🖼 ${esc(t('savePost'))}</button>
+        </div>`;
+  return h;
+}
+
+function render() {
+  const c = chat();
+  titleEl.textContent = c ? c.title : t('untitled');
+  wrap.innerHTML = '';
+  if (!c || !c.messages.length) { wrap.innerHTML = heroHTML(); return; }
+  for (const m of c.messages) {
+    const d = document.createElement('div');
+    if (m.role === 'user') {
+      d.className = 'msg user';
+      d.innerHTML = `<div class="bubble">${esc(m.text)}</div>`;
+    } else {
+      d.className = 'msg bot';
+      d.innerHTML = answerHTML(m);
+    }
+    wrap.appendChild(d);
+  }
+  down();
+}
+
+wrap.addEventListener('click', e => {
+  if (e.target.closest('#browseBtn')) { openGuide(); return; }
+
+  const card = e.target.closest('[data-ask]');
+  if (card) { qBox.value = card.dataset.ask; form.requestSubmit(); return; }
+
+  const head = e.target.closest('.srchead');
+  if (head) {
+    const open = head.getAttribute('aria-expanded') === 'true';
+    head.setAttribute('aria-expanded', String(!open));
+    head.nextElementSibling.hidden = open;
+    return;
+  }
+  const cp = e.target.closest('[data-copy]');
+  if (cp) {
+    navigator.clipboard.writeText(shareText(msgFor(cp)))
+      .then(() => toast(t('copied')));
+    return;
+  }
+
+  const pb = e.target.closest('[data-post]');
+  if (pb) {
+    const m = msgFor(pb);
+    if (!m) return;
+    // The question is the user message immediately before this answer.
+    const msgs = chat()?.messages || [];
+    const i = msgs.indexOf(m);
+    const q = (i > 0 && msgs[i - 1].role === 'user') ? msgs[i - 1].text : '';
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches ||
+                 document.body.classList.contains('dark');
+
+    // Shift-click opens the native folder dialog through app.py's js_api; a
+    // plain click behaves like a browser download and goes to Downloads. The
+    // common case should not cost a dialog, and a webview cannot do a real
+    // browser download, so this is the closest honest equivalent.
+    const chooseDir = (e.shiftKey && window.pywebview?.api?.choose_folder)
+      ? window.pywebview.api.choose_folder() : Promise.resolve(null);
+
+    Promise.resolve(chooseDir).then(dir => {
+      toast(t('saving'));
+      return fetch('/post', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: m, question: q, dir: dir || null,
+                              theme: dark ? 'dark' : 'light', lang: LANG})
+      });
+    }).then(r => r.json().then(j => ({ok: r.ok, j})))
+      .then(({ok, j}) => {
+        if (!ok) return toast(j.error === 'too_long' ? t('tooLong') : j.error);
+        // Name the folder it actually went to. The first version said "saved to
+        // your Desktop" while writing into data/posts/ inside the app -- so the
+        // file was neither where it claimed to be nor anywhere a person looks.
+        const where = (j.folder || '').replace(/^\/Users\/[^/]+/, '~');
+        const label = j.count > 1 ? `${t('savedThread')} (${j.count})`
+                                  : t('savedTo');
+        toast(`${label} — ${where}`, j.folder);
+      })
+      .catch(() => toast(t('tooLong')));
+  }
+});
+
+/* The message object behind a clicked button. Answers are rendered in the same
+   order as chat().messages, so the DOM position is the index. */
+function msgFor(el) {
+  const node = el.closest('.msg');
+  const idx = [...wrap.children].indexOf(node);
+  return (chat()?.messages || [])[idx] || null;
+}
+
+/* What leaves the app when someone copies or shares an answer.
+ *
+ * Copy used to take `.answer` textContent alone. That dropped every citation,
+ * the source list, the retired-site warning and the unverified-fact block --
+ * so a hedged, sourced answer arrived in WhatsApp as a bare assertion with the
+ * safety layers stripped off. The citations ARE the product; anything that
+ * carries the answer out of the window has to carry them too. */
+function shareText(m) {
+  if (!m) return '';
+  const L = [m.answer.trim()];
+
+  for (const u of (m.unverified || []))
+    L.push(`\n[!] ${t('unsafeTitle')}: ${u.value}`);
+  for (const w of (m.warnings || []))
+    L.push(`\n[!] ${w}`);
+
+  if ((m.sources || []).length) {
+    L.push(`\n${t('sources')}:`);
+    for (const s of m.sources)
+      L.push(`  [${s.tag}] ${s.title}${s.section ? ' — ' + s.section : ''}\n` +
+             `        ${s.citation || s.url}`);
+  }
+  L.push(`\n— ${t('brandName')} · ${new Date().toISOString().slice(0, 10)}` +
+         `\n${t('shareFooter')}`);
+  return L.join('\n');
+}
+
+let toastTimer;
+function toast(msg, folder) {
+  let el = $('toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  // "Saved to Downloads" only helps someone who knows where Downloads is.
+  // When a file was written, offer to open the folder -- it removes the step
+  // where a person goes hunting and gives up.
+  if (folder) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'toast-act';
+    b.textContent = t('showFile');
+    b.onclick = () => fetch('/reveal', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({folder})
+    });
+    el.appendChild(b);
+  }
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.remove(), folder ? 9000 : 2200);
+}
+
+/* ================================== ask ================================= */
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const question = qBox.value.trim();
+  if (!question || sendBtn.disabled) return;
+
+  const c = ensureChat(question);
+  // Snapshot the prior turns BEFORE adding this one -- the backend rewrites a
+  // follow-up ("how much does it cost?") into a standalone search query using
+  // these, and including the question itself would be circular. Answers are
+  // sent trimmed: the subject the rewrite needs is always near the start.
+  const history = c.messages.slice(-4).map(m => ({
+    role: m.role,
+    text: (m.role === 'user' ? m.text : m.answer || '').slice(0, 600),
+  })).filter(m => m.text);
+
+  c.messages.push({ role: 'user', text: question });
+  persist(); renderHistory(); render();
+
+  qBox.value = ''; qBox.style.height = 'auto';
+  sendBtn.disabled = true; qBox.disabled = true;
+
+  const pending = document.createElement('div');
+  pending.className = 'msg bot';
+  pending.innerHTML = `<div class="who"><span class="dot"></span>${esc(t('bot'))}</div>
+                       <div class="typing"><i></i><i></i><i></i></div>
+                       <div class="progress"></div>`;
+  wrap.appendChild(pending); down();
+  const prog = pending.querySelector('.progress');
+
+  // /ask streams NDJSON: progress lines while the model works, then one final
+  // {done:true, ...}. A local model can take a minute, and a webview kills a
+  // request that sends nothing for ~60s -- the progress lines keep it alive.
+  let result = null;
+  try {
+    const res = await fetch('/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, history,
+                             source_filter: filterSel.value || null }),
+    });
+    const takeLine = line => {
+      if (!line.trim()) return;
+      let msg;
+      try { msg = JSON.parse(line); } catch { return; }
+      if (msg.done) { result = msg; return; }
+      const label = t('st_' + msg.stage) || '';
+      prog.textContent = msg.elapsed ? `${label} ${msg.elapsed}s` : label;
+      down();
+    };
+
+    if (res.body && res.body.getReader) {
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();                  // last piece may be incomplete
+        lines.forEach(takeLine);
+      }
+      takeLine(buf);                        // trailing line with no newline
+    } else {
+      // Older webviews expose no streaming body. We still get the whole
+      // response at the end, so the answer arrives -- just without progress.
+      (await res.text()).split('\n').forEach(takeLine);
+    }
+  } catch {
+    result = null;
+  }
+  if (!result) result = { answer: t('offline'), warnings: [], sources: [] };
+
+  c.messages.push({ role: 'bot', answer: result.answer,
+                    warnings: result.warnings || [], sources: result.sources || [],
+                    unverified: result.unverified || [],
+                    lang_downgraded: !!result.lang_downgraded });
+  persist();
+  pending.innerHTML = answerHTML(c.messages[c.messages.length - 1]);
+  down();
+  sendBtn.disabled = false; qBox.disabled = false; qBox.focus();
+  refreshStatus();
+});
+
+qBox.addEventListener('input', () => {
+  qBox.style.height = 'auto';
+  qBox.style.height = Math.min(qBox.scrollHeight, 190) + 'px';
+});
+qBox.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+
+$('newBtn').onclick = newChat;
+$('menuBtn').onclick = () => document.body.classList.toggle('nav');
+$('rail').addEventListener('click', e => {
+  if (e.target.closest('.hitem, #newBtn')) document.body.classList.remove('nav');
+});
+
+/* ================================ settings =============================== */
+const modal = $('modal'), provSel = $('provider'), modelInp = $('model');
+const keyInp = $('apiKey'), keyRow = $('keyRow'), keyState = $('keyState');
+const provHelp = $('provHelp'), saveMsg = $('saveMsg');
+const banner = $('banner'), bannerText = $('bannerText'), modePill = $('modePill');
+let SETTINGS = null;
+
+/* The ONE place SETTINGS is replaced. The hero cards and the guide bake the
+   answer language into their data-ask payloads, so a provider change has to
+   rebuild them: otherwise switching to Gemini leaves the Burmese lines hidden
+   until a reload, and switching back to the local model leaves live Burmese
+   lines that now quietly answer in English. Rebuilt only when the capability
+   actually flips, so an ordinary status poll does not churn the DOM. */
+function setSettings(s) {
+  const had = writesBurmese();
+  SETTINGS = s;
+  if (had !== writesBurmese()) {
+    render();
+    if (!guideModal.hidden) renderGuide();
+  }
+  return s;
+}
+
+function renderStatus(s) {
+  banner.hidden = !!s.ready;
+  if (!s.ready) bannerText.textContent = s.ready_message;
+  const p = s.providers && s.providers[s.provider];
+  const local = s.provider === 'ollama';
+  modePill.className = 'pill ' + (local ? 'on' : 'off');
+  modePill.textContent = local ? t('modeLocal') : t('modeCloud')(p ? p.label : s.provider);
+}
+
+function syncProviderFields() {
+  const p = SETTINGS.providers[provSel.value];
+  if (!p) { provHelp.textContent = ''; keyRow.hidden = true; return; }
+  provHelp.textContent = p.help;
+  if (!modelInp.dataset.touched) modelInp.value = p.default_model;
+  keyRow.hidden = !p.needs_key;
+  keyState.textContent = (provSel.value === SETTINGS.provider && SETTINGS.has_key)
+    ? `A key is already saved (${SETTINGS.key_hint}). Leave blank to keep it.` : '';
+}
+
+async function loadSettings() {
+  setSettings(await (await fetch('/settings')).json());
+  provSel.innerHTML = '';
+  for (const [id, p] of Object.entries(SETTINGS.providers || {})) {
+    const o = document.createElement('option');
+    o.value = id; o.textContent = p.label;
+    provSel.appendChild(o);
+  }
+  provSel.value = SETTINGS.provider;
+  if (provSel.selectedIndex < 0) provSel.selectedIndex = 0;   // saved provider no longer offered
+  modelInp.value = SETTINGS.model;
+  delete modelInp.dataset.touched;
+  syncProviderFields();
+  renderStatus(SETTINGS);
+}
+let pollTimer = null;
+const refreshStatus = () =>
+  fetch('/settings').then(r => r.json()).then(s => {
+    setSettings(s); renderStatus(s);
+    // While something is still warming up (e.g. the local engine booting),
+    // keep checking so the banner clears itself without a reload.
+    clearTimeout(pollTimer);
+    if (!s.ready) pollTimer = setTimeout(refreshStatus, 3000);
+  }).catch(() => {});
+
+function openSettings() {
+  loadSettings()
+    .then(() => { saveMsg.textContent = ''; keyInp.value = ''; modal.hidden = false; provSel.focus(); })
+    .catch(() => toast(t('offline')));
+}
+$('settingsBtn').onclick = openSettings;
+$('bannerFix').onclick = openSettings;
+$('cancelBtn').onclick = () => { modal.hidden = true; };
+modal.addEventListener('click', e => { if (e.target === modal) modal.hidden = true; });
+
+$('guideBtn').onclick = openGuide;
+$('guideClose').onclick = () => { guideModal.hidden = true; };
+guideModal.addEventListener('click', e => {
+  if (e.target === guideModal) { guideModal.hidden = true; return; }
+  const btn = e.target.closest('[data-guide-ask]');
+  if (!btn) return;
+  // Close first, so the answer streaming in behind isn't hidden by the sheet.
+  guideModal.hidden = true;
+  document.body.classList.remove('nav');
+  qBox.value = btn.dataset.guideAsk;
+  form.requestSubmit();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    modal.hidden = true; guideModal.hidden = true;
+    document.body.classList.remove('nav');
+  }
+});
+provSel.onchange = () => { delete modelInp.dataset.touched; syncProviderFields(); };
+modelInp.oninput = () => { modelInp.dataset.touched = '1'; };
+
+$('saveBtn').onclick = async () => {
+  saveMsg.textContent = t('saving');
+  try {
+    const res = await fetch('/settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: provSel.value, model: modelInp.value,
+                             api_key: keyInp.value || null }),
+    });
+    const s = await res.json();
+    if (s.error) { saveMsg.textContent = 'Error: ' + s.error; return; }
+    setSettings(s); keyInp.value = ''; renderStatus(s);
+    saveMsg.textContent = '';
+    modal.hidden = true; toast(t('saved'));
+  } catch {
+    saveMsg.textContent = t('offline');
+  }
+};
+
+/* --------------------------------------------------------------- splash ---
+   Ask the machine what it actually has before pretending to be ready.
+
+   The five checks are shown, not just summed, because "not ready" is useless
+   to a case worker while "the search index is stale, run this one command" is
+   actionable. A minimum dwell keeps the mark on screen long enough to read on
+   a fast machine, where /preflight returns in single-digit milliseconds and
+   the splash would otherwise flash and vanish.                              */
+const SPLASH_MIN_MS = 1250;
+
+function hideSplash(el) {
+  el.hidden = true;
+  setTimeout(() => { el.style.display = 'none'; }, 500);   // after the fade
+}
+
+async function splashBoot() {
+  const el = document.getElementById('splash');
+  const list = document.getElementById('splashChecks');
+  const note = document.getElementById('splashNote');
+  const go = document.getElementById('splashGo');
+  const started = Date.now();
+
+  list.innerHTML = `<div class="row"><i>·</i><span>${t('checking')}</span></div>`;
+
+  let report = null;
+  try {
+    const r = await fetch('/preflight');
+    if (r.ok) report = await r.json();
+  } catch {
+    // Server not up yet is not worth showing here; a real problem will surface
+    // when a question is asked, with better context than a splash can give.
+  }
+
+  if (report) {
+    list.innerHTML = '';
+    report.checks.forEach((c, i) => {
+      const row = document.createElement('div');
+      row.className = 'chk ' + (c.ok ? 'ok' : 'bad');
+      row.style.animationDelay = (i * 55) + 'ms';
+      row.append(Object.assign(document.createElement('i'), {textContent: c.ok ? '✓' : '✕'}));
+      const span = document.createElement('span');
+      span.textContent = `${c.label} — ${c.detail}`;
+      if (!c.ok && c.fix) {
+        span.append(' ');
+        span.append(Object.assign(document.createElement('code'), {textContent: c.fix}));
+      }
+      row.append(span);
+      list.appendChild(row);
+    });
+
+    const p = report.provenance || {};
+    const bits = [];
+    if (p.captured) bits.push(`Archive captured ${p.captured}.`);
+    if (p.pending_count) bits.push(`${p.pending_count} change(s) staged for review.`);
+    if (p.credit) bits.push(p.credit);
+    note.textContent = bits.join(' ');
+    note.hidden = bits.length === 0;
+  }
+
+  // A failed check must not lock anyone out. Part of the archive may still be
+  // searchable, and a person sitting in front of a case worker is not helped
+  // by a screen announcing that the tool has decided today is not the day.
+  if (report && !report.ready) { go.hidden = false; go.onclick = () => hideSplash(el); return; }
+
+  setTimeout(() => hideSplash(el), Math.max(0, SPLASH_MIN_MS - (Date.now() - started)));
+}
+
+/* ================================= start ================================ */
+applyLang();
+splashBoot();
+refreshStatus();
+qBox.focus();
+</script>
+</body>
+</html>

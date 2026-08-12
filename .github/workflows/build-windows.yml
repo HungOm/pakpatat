@@ -1,0 +1,106 @@
+name: Build Windows installer
+
+# WHY THIS EXISTS
+# ---------------
+# PyInstaller does not cross-compile. A Windows .exe can only be produced on
+# Windows, so a project maintained on a Mac cannot build its own installer
+# locally. This runs the build on a GitHub-hosted Windows runner instead.
+#
+# Push a tag to cut a release:
+#     git tag v1.0.0 && git push origin v1.0.0
+# ...or run it by hand from the Actions tab to get a downloadable artifact
+# without publishing anything.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write          # needed only by the release step below
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Check the version matches the tag
+        shell: bash
+        run: |
+          VERSION=$(python packaging/version_info.py --print)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/v}"
+            # A tag that disagrees with pakpatat/__init__.py would ship an
+            # installer whose filename and Add/Remove Programs entry disagree.
+            [ "$TAG" = "$VERSION" ] || {
+              echo "::error::tag v$TAG != __version__ $VERSION"; exit 1; }
+          fi
+
+      - name: Cache the embedding model
+        # Bundling it is what lets a fresh install search with no internet.
+        # Cached between runs so it is fetched once, not every build.
+        uses: actions/cache@v4
+        with:
+          path: data/.models
+          key: fastembed-${{ hashFiles('requirements.txt') }}
+
+      - name: Fetch the embedding model if not cached
+        run: |
+          python -c "import os; os.environ.setdefault('FASTEMBED_CACHE_PATH','data/.models'); from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'); print('model ready')"
+
+      - name: Generate the Windows version resource
+        run: python packaging/version_info.py
+
+      - name: Build with PyInstaller
+        run: pyinstaller packaging/pakpatat.spec --noconfirm
+
+      - name: Smoke-test the frozen build
+        # Catches the failure this build is most prone to: a missing hidden
+        # import or data file that shows up only outside a checkout. NOT
+        # continue-on-error -- shipping an installer whose app cannot find its
+        # own UI is worse than shipping nothing.
+        run: dist\Pakpatat\Pakpatat.exe --selftest
+
+      - name: Ensure Inno Setup is available
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
+          echo "ISCC=$iscc" >> $env:GITHUB_ENV
+
+      - name: Build the installer
+        run: '& "$env:ISCC" packaging\installer.iss /DMyAppVersion=${{ env.VERSION }}'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pakpatat-Setup-${{ env.VERSION }}
+          path: dist/Pakpatat-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Pakpatat-Setup-*.exe
+          body: |
+            **One download, installs without an administrator password.**
+
+            This installer contains the application only. It ships **no archive
+            content** — see NOTICE.md. Point it at your own archive, or ask
+            whoever maintains yours for the data folder.
+
+            Offline answers additionally need [Ollama](https://ollama.com/download)
+            and one `ollama pull qwen2.5:3b-instruct`.

@@ -1,0 +1,155 @@
+{
+  "config": {
+    "top_k": 8,
+    "dense_weight": 0.5,
+    "min_score": 0.28,
+    "embed_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "chunks": 595
+  },
+  "summary": {
+    "cases": 10,
+    "hits": 9,
+    "recall_at_k": 0.9,
+    "prompt_tokens_mean": 2977,
+    "prompt_tokens_max": 4305
+  },
+  "cases": [
+    {
+      "q": "What email do I use if I have trouble logging in to My Services?",
+      "fact": "mlslureg@unhcr.org",
+      "kind": "email",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 2,
+      "rank_bm25": 1,
+      "top_raw": 0.3691,
+      "prompt_chars": 8960,
+      "prompt_tokens_est": 2489
+    },
+    {
+      "q": "How do I report someone asking me for money for UNHCR services?",
+      "fact": "mlslufrd@unhcr.org",
+      "kind": "email",
+      "hit": true,
+      "rank_fused": 2,
+      "rank_dense": 5,
+      "rank_bm25": 4,
+      "top_raw": 0.5809,
+      "prompt_chars": 8941,
+      "prompt_tokens_est": 2484
+    },
+    {
+      "q": "How can I appeal my rejected RSD application?",
+      "fact": "mlslursd@unhcr.org",
+      "kind": "email",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 1,
+      "rank_bm25": 1,
+      "top_raw": 0.4157,
+      "prompt_chars": 10276,
+      "prompt_tokens_est": 2854
+    },
+    {
+      "q": "What is the UNHCR registration hotline number?",
+      "fact": "0176143810",
+      "kind": "phone",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 8,
+      "rank_bm25": 1,
+      "top_raw": 0.6247,
+      "prompt_chars": 9810,
+      "prompt_tokens_est": 2725
+    },
+    {
+      "q": "Who do I call if someone has been arrested or detained?",
+      "fact": "+60126305060",
+      "kind": "phone",
+      "hit": true,
+      "rank_fused": 3,
+      "rank_dense": 1,
+      "rank_bm25": 21,
+      "top_raw": 0.3263,
+      "prompt_chars": 11192,
+      "prompt_tokens_est": 3109
+    },
+    {
+      "q": "How much does REMEDI cover per day for a hospital room?",
+      "fact": "RM160",
+      "kind": "fee",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 1,
+      "rank_bm25": 1,
+      "top_raw": 0.5622,
+      "prompt_chars": 11414,
+      "prompt_tokens_est": 3171
+    },
+    {
+      "q": "What format is the UNHCR group number written in?",
+      "fact": "123-45678901",
+      "kind": "text",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 2,
+      "rank_bm25": 1,
+      "top_raw": 0.5323,
+      "prompt_chars": 11114,
+      "prompt_tokens_est": 3087
+    },
+    {
+      "q": "What is the phone number for the MERCY clinic in Ampang?",
+      "fact": "+60342886364",
+      "kind": "phone",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 2,
+      "rank_bm25": 1,
+      "top_raw": 0.5479,
+      "prompt_chars": 15497,
+      "prompt_tokens_est": 4305
+    },
+    {
+      "q": "REMEDI က ဆေးရုံတက်ရင် တစ်ရက်ကို ဘယ်လောက် ကျခံပေးမလဲ။",
+      "fact": "RM160",
+      "kind": "fee",
+      "hit": true,
+      "rank_fused": 1,
+      "rank_dense": 1,
+      "rank_bm25": 21,
+      "top_raw": 0.4605,
+      "prompt_chars": 11038,
+      "prompt_tokens_est": 3066
+    },
+    {
+      "q": "UNHCR မှာ မှတ်ပုံတင်ဖို့ ဖုန်းနံပါတ် ဘယ်လောက်လဲ။",
+      "fact": "0176143810",
+      "kind": "phone",
+      "hit": false,
+      "rank_fused": 13,
+      "rank_dense": 11,
+      "rank_bm25": 6,
+      "top_raw": 0.6834,
+      "prompt_chars": 8940,
+      "prompt_tokens_est": 2483
+    }
+  ],
+  "off_topic": [
+    {
+      "q": "How do I book a flight to Bangkok?",
+      "top_raw": 0.479,
+      "gated": false
+    },
+    {
+      "q": "What is the best football team in the world?",
+      "top_raw": 0.0986,
+      "gated": true
+    },
+    {
+      "q": "How do I cook chicken curry?",
+      "top_raw": 0.0995,
+      "gated": true
+    }
+  ]
+}
