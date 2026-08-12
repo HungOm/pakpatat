@@ -189,6 +189,25 @@ If the app opens in your browser rather than its own window, Windows is missing
 the Edge WebView2 runtime — the installer warns about this. Everything still
 works; install "Edge WebView2 Runtime" from Microsoft for the app window.
 
+### macOS — one download
+
+Download **`Pakpatat-<version>-macOS-arm64.dmg`** from the
+[Releases](../../releases) page, open it, and drag Pakpatat to Applications.
+
+- **Apple Silicon only** (see System requirements for why). Intel Macs run from
+  a checkout.
+- **Not code-signed or notarised.** macOS will refuse it on first launch with
+  "cannot be opened because the developer cannot be verified". Right-click the
+  app → **Open** → **Open**, once. Signing needs a paid Apple Developer account;
+  until this project has one, that right-click is the honest instruction rather
+  than a workaround pretending to be a feature.
+- Your archive and settings live in `~/Library/Application Support/Pakpatat`,
+  not inside the app, so replacing the app never touches them.
+
+Same two caveats as Windows: no archive content is included, and offline
+answers need [Ollama](https://ollama.com/download) plus
+`ollama pull qwen2.5:3b-instruct`.
+
 ### macOS and Linux — from a checkout
 
 Install [Python 3.11+](https://www.python.org/downloads/) and
@@ -286,6 +305,78 @@ Expected layout under `PAKPATAT_ARCHIVE` (each overridable by env var):
 
 Any archive of markdown pages works — the pipeline is not specific to one
 source. See [NOTICE.md](NOTICE.md) before pointing it at someone else's site.
+
+---
+
+## System requirements
+
+Measured on the reference machine (Apple M1, 16 GB, macOS 14.7.1, arm64) unless
+marked otherwise. Numbers are what the tools reported, not estimates.
+
+### Minimum
+
+| | Offline (recommended) | Cloud provider |
+|---|---|---|
+| **RAM** | **8 GB** | 4 GB |
+| **Free disk** | **3 GB** | 800 MB |
+| **CPU** | 64-bit, 4 cores | 64-bit, 2 cores |
+| **Internet** | First setup only | Every question |
+| **Account / key** | None | Yes, and questions leave the machine |
+
+**Why 8 GB for offline.** An answer holds two processes at once — measured:
+
+| | peak |
+|---|---|
+| Python side, retrieval only | 639 MB |
+| Python side, full answer | 826 MB |
+| Ollama holding `qwen2.5:3b-instruct` at 8192 context | 2.3 GB |
+| **Together, during an answer** | **≈ 3.1 GB** |
+
+On 4 GB that leaves nothing for the OS and a browser, and the machine swaps —
+which on this workload means an answer that took 11 seconds takes minutes.
+4 GB is only viable with a cloud provider, where no model is held locally.
+
+**Where the disk goes.**
+
+| | |
+|---|---|
+| Application | 414 MB installed (290 MB download) — includes the 240 MB embedding model |
+| `qwen2.5:3b-instruct` | 1.9 GB on disk, 2.3 GB loaded |
+| Archive + search index | ~3 MB (888 KB corpus, 1.7 MB index) — tiny; the model dominates |
+
+Swapping to `qwen2.5:7b-instruct` needs roughly 4.7 GB more disk and a machine
+with real headroom — see the note in `pakpatat/config.py` about why 3B is the
+default.
+
+### Operating systems
+
+| | Minimum | Notes |
+|---|---|---|
+| **macOS** | 11 Big Sur | Built and verified on 14.7.1. The `.dmg` is **arm64 (Apple Silicon) only** — see below. |
+| **Windows** | 10 (1809) or 11, 64-bit | Needs the Edge WebView2 runtime, present by default on current builds; the installer warns if missing. |
+| **Linux** | any current distro | From a checkout, not packaged. Needs WebKitGTK for the app window. |
+
+No GPU is required. On Apple Silicon, Ollama uses the GPU through unified
+memory automatically — which is why the 2.3 GB above counts against system RAM.
+
+**Apple Silicon vs Intel.** PyInstaller builds for the architecture of the
+Python that runs it, and a `universal2` build would need every wheel in the
+tree to be universal2 — `onnxruntime`'s is not. The published `.dmg` is
+therefore arm64. Intel Macs can run from a checkout, or build their own `.dmg`
+from an x86_64 Python.
+
+### Measured performance
+
+On the reference M1, with `qwen2.5:3b-instruct`:
+
+| | |
+|---|---|
+| Retrieval | ~11 ms warm |
+| First question after launch | ~70 s (the model loading into RAM) |
+| Later questions | 5–11 s |
+
+The first-question delay is the model load, not the search. It is why
+`ASSISTANT_OLLAMA_KEEP_ALIVE` defaults to 30 minutes.
 
 ## Run
 

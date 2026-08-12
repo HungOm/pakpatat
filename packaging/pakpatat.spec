@@ -27,7 +27,10 @@ import sys
 
 from PyInstaller.utils.hooks import collect_all, collect_data_files
 
-ROOT = pathlib.Path(SPECPATH).resolve().parents[0].parent
+# SPECPATH is the packaging/ directory itself, so one .parent reaches
+# the repository root. `.parents[0].parent` climbed one level too far
+# and put ROOT outside the project entirely.
+ROOT = pathlib.Path(SPECPATH).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 datas = [
@@ -54,7 +57,9 @@ for pkg in ("onnxruntime", "fastembed", "tokenizers"):
 
 # langchain resolves providers through entry points; without the metadata the
 # Settings panel's provider switch raises at runtime instead of at build.
-for pkg in ("langchain", "langchain_core", "langchain_ollama", "langchain_community"):
+# NOT langchain_community: it is not in requirements.txt, and listing it as a
+# hidden import made every build log an "ERROR: Hidden import not found".
+for pkg in ("langchain", "langchain_core", "langchain_ollama"):
     try:
         datas += collect_data_files(pkg, include_py_files=False)
         hiddenimports.append(pkg)

@@ -1,0 +1,99 @@
+name: Build macOS app
+
+# Unlike the Windows build, this one CAN be run locally on a Mac:
+#
+#     pip install pyinstaller
+#     python build_index.py                 # once, so the model gets bundled
+#     pyinstaller packaging/pakpatat-macos.spec --noconfirm
+#     ./dist/Pakpatat.app/Contents/MacOS/Pakpatat --selftest
+#
+# This exists to produce the release asset reproducibly and to keep the two
+# platforms building from the same tag.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # macos-14 is Apple Silicon. PyInstaller builds for the architecture of the
+    # Python running it and onnxruntime has no universal2 wheel, so this runner
+    # choice IS the architecture of the published .dmg.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Read the version, check it matches the tag
+        run: |
+          VERSION=$(python packaging/version_info.py --print)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/v}"
+            [ "$TAG" = "$VERSION" ] || {
+              echo "::error::tag v$TAG != __version__ $VERSION"; exit 1; }
+          fi
+
+      - name: Cache the embedding model
+        uses: actions/cache@v4
+        with:
+          path: data/.models
+          key: fastembed-macos-${{ hashFiles('requirements.txt') }}
+
+      - name: Fetch the embedding model if not cached
+        # Bundling it is what lets a fresh install search with no internet.
+        run: |
+          python -c "import os; os.environ.setdefault('FASTEMBED_CACHE_PATH','data/.models'); from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2'); print('model ready')"
+
+      - name: Build the .app
+        run: pyinstaller packaging/pakpatat-macos.spec --noconfirm
+
+      - name: Smoke-test the frozen app
+        # Not continue-on-error: an app that cannot find its own UI must not ship.
+        run: ./dist/Pakpatat.app/Contents/MacOS/Pakpatat --selftest
+
+      - name: Build the .dmg
+        run: |
+          ARCH=$(lipo -archs dist/Pakpatat.app/Contents/MacOS/Pakpatat | tr -d ' ')
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
+          rm -rf build/dmg && mkdir -p build/dmg
+          cp -R dist/Pakpatat.app build/dmg/
+          ln -s /Applications build/dmg/Applications
+          hdiutil create -volname "Pakpatat ${VERSION}" -srcfolder build/dmg \
+            -ov -format UDZO "dist/Pakpatat-${VERSION}-macOS-${ARCH}.dmg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pakpatat-${{ env.VERSION }}-macOS-${{ env.ARCH }}
+          path: dist/*.dmg
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          body: |
+            **macOS, Apple Silicon.** Open the .dmg and drag to Applications.
+
+            Not code-signed: on first launch, right-click the app → Open → Open.
+
+            Contains the application only — **no archive content** (NOTICE.md).
+            Offline answers also need [Ollama](https://ollama.com/download) and
+            `ollama pull qwen2.5:3b-instruct`.
+
+            Needs macOS 11+, 8 GB RAM and 3 GB free disk for offline use.
