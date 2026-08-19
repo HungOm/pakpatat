@@ -139,6 +139,13 @@ This matters before you clone, fork or publish anything built on it.
 refresh pipeline, the evaluation harness, the desktop app, and the MCP server.
 Code only. **MIT licensed.**
 
+The app can *fetch* an archive for itself — the Knowledge base panel crawls
+`help.unhcr.org` from a button, politely and rate-limited
+([NOTICE.md](NOTICE.md) lists what is enforced). That is how a fresh install
+gets something to search. It is not the same thing as this repository carrying
+UNHCR's content, and it does not make redistributing what you fetched your
+decision to make.
+
 **Deliberately absent, and git-ignored:**
 
 | | why |
@@ -151,11 +158,13 @@ Code only. **MIT licensed.**
 The `.gitignore` enforces the first two before anything else in the file, and
 the git history contains no `.env`, no `*.jsonl` and no archive content.
 
-**If you fork this, you are forking an empty shelf.** You supply your own
-archive. Read [NOTICE.md](NOTICE.md) before pointing it at someone else's site,
-and do not reintroduce UNHCR's name, logo or brand blue as if this were an
-official service — an earlier working title did exactly that and was dropped
-for it.
+**If you fork this, you are forking an empty shelf** — one that knows how to
+fill itself from `help.unhcr.org`, and nothing more. You still supply your own
+archive for anything beyond the live site. Read [NOTICE.md](NOTICE.md) before
+pointing it at someone else's site, keep the rate limiting and `robots.txt`
+handling in `pakpatat/scrape.py` intact if you do, and do not reintroduce
+UNHCR's name, logo or brand blue as if this were an official service — an
+earlier working title did exactly that and was dropped for it.
 
 ---
 

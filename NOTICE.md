@@ -40,13 +40,36 @@ exist.
 
 ## Scraping responsibly
 
-`pipeline/build_corpus.py` reads an archive you already hold. If you build that
-archive yourself:
+**This software fetches from `help.unhcr.org` itself.** Not only as an operator
+script: the desktop app's Knowledge base panel will crawl the site from a
+button, and the person pressing it may be a case worker who has never read this
+file. That is a deliberate choice — an install with no archive was previously a
+dead end for anyone without a developer — but it means the politeness is the
+software's responsibility, not the reader's good intentions.
 
-- respect `robots.txt` and the site's terms of use
-- rate-limit; do not hammer a humanitarian organisation's servers
-- re-check content periodically — guidance for refugees goes stale, and stale
-  guidance in this domain is not a cosmetic problem
+So it is enforced in code, in `pakpatat/scrape.py`, on every request this
+project makes:
+
+- `robots.txt` is fetched and obeyed, and a site whose `robots.txt` cannot be
+  read is treated as forbidden rather than permitted
+- a real rate limit with jitter between requests, and a site-declared
+  `Crawl-delay` is honoured when it is slower than ours
+- conditional requests (`If-None-Match` / `If-Modified-Since`), so re-checking
+  an unchanged page costs a `304` and no body
+- exponential backoff honouring `Retry-After` on `429` / `503`
+- a hard per-run request budget, so a bug in a loop cannot become a flood
+- a `User-Agent` that says what the client is and how to make it stop
+
+If you fork this and point it at a different site, those guarantees are yours
+to keep. Do not remove them, and do not raise the rate limit to make a crawl
+finish sooner — the servers on the other end belong to a humanitarian
+organisation, and nothing this tool does is urgent enough to justify the load.
+
+Whatever you fetch, re-check it periodically: guidance for refugees goes stale,
+and stale guidance in this domain is not a cosmetic problem.
+
+Fetching for your own offline use is a different act from republishing. The
+section above still governs the second one.
 
 ## This tool does not give legal or immigration advice
 
