@@ -16,6 +16,15 @@ fastembed>=0.8
 rank_bm25>=0.2
 numpy>=1.26
 
+# Growing/refreshing the archive from help.unhcr.org (pakpatat/archive.py,
+# the Knowledge base panel's "Get the archive" / "Check for updates" buttons).
+# Used to be operator-only, in requirements-refresh.txt: that made sense while
+# only a terminal could trigger a crawl, but the panel is reachable from any
+# installed app now, so every build needs these to be able to answer that
+# button honestly instead of failing on the first press.
+beautifulsoup4>=4.12
+markdownify>=0.13
+
 # Desktop window (uses the OS's built-in browser engine, not Electron)
 pywebview>=6.2
 

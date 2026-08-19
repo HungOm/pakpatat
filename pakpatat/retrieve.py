@@ -41,10 +41,33 @@ def _currency_weight(chunk: dict) -> float:
     return 1.0
 
 
+def reset() -> None:
+    """Drop the cached index so the next question reloads it from disk.
+
+    _load() caches for the life of the process, which is right for a tool that
+    answers hundreds of questions from a fixed archive -- but it means a
+    rebuilt index is invisible to a running app. pipeline/refresh.py works
+    around that by telling the operator to quit and reopen; the in-app rebuild
+    (pakpatat/firstrun.py) cannot ask a case worker to do that, so it calls
+    this instead.
+
+    Only the dict is emptied, never rebound: retrieve's own functions close
+    over this module-level name, and rebinding it would leave them reading a
+    dict nobody updates.
+    """
+    _STATE.clear()
+
+
 def _load():
-    """Lazy-load index + models once per process."""
+    """Lazy-load index + models once per process.
+
+    Returns a SNAPSHOT of the cache, not the cache itself. reset() empties
+    _STATE when a rebuilt index is swapped in, and a search that had already
+    taken the dict would find its keys vanishing underneath it mid-question.
+    The copy is five references, not five megabytes.
+    """
     if _STATE:
-        return _STATE
+        return dict(_STATE)
 
     if not config.INDEX_META.exists():
         raise SystemExit(
@@ -69,7 +92,7 @@ def _load():
         _tokenize(f"{c['doc_title']} {c.get('section_heading') or ''} {c['text']}")
         for c in chunks
     ])
-    return _STATE
+    return dict(_STATE)
 
 
 def _minmax(a: np.ndarray) -> np.ndarray:

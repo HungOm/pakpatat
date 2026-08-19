@@ -415,6 +415,29 @@
   .splash-checks .chk.ok i { color: var(--ok-ink); }
   .splash-checks .chk code { font-size: 11px; background: var(--line-soft);
                              padding: 1px 5px; border-radius: 4px; }
+  /* A failing row that the app can fix itself gets a button under it. Under,
+     not beside: the row is already two lines on a narrow window, and a button
+     that reflows into the text is a button people mis-click. */
+  .splash-checks .act { display: flex; align-items: center; gap: 9px;
+                        margin-top: 6px; flex-wrap: wrap; }
+  .chk-btn { font: inherit; font-size: 11.5px; font-weight: 650; cursor: pointer;
+             border: 1px solid var(--line); border-radius: 8px; padding: 4px 11px;
+             background: var(--panel); color: var(--ink); }
+  .chk-btn:hover:not(:disabled) { background: var(--line-soft); }
+  .chk-btn:disabled { opacity: .5; cursor: default; }
+  /* Fixed width, and it stays put once shown: a bar that appears and vanishes
+     between stages reads as an error, not as progress. */
+  .chk-bar { width: 132px; height: 4px; border-radius: 3px; overflow: hidden;
+             background: var(--line-soft); }
+  .chk-bar > span { display: block; height: 100%; width: 0;
+                    background: var(--accent); transition: width .25s ease; }
+  /* Indeterminate: the model load and the install step have no percentage to
+     report, and a bar frozen at its last value would claim they had stalled. */
+  .chk-bar.wait > span { width: 40%; animation: slide 1.1s ease-in-out infinite; }
+  @keyframes slide { 0% { transform: translateX(-100%) } 100% { transform: translateX(250%) } }
+  .chk-msg { font-size: 11px; color: var(--muted); }
+  .chk-msg.err { color: var(--bad-ink); }
+  .chk-hint { flex-basis: 100%; font-size: 11px; color: var(--faint); }
   .splash-note { margin-top: 14px; font-size: 11px; color: var(--faint); max-width: 330px;
                  line-height: 1.5; }
   .splash-btn { margin-top: 14px; }
@@ -454,6 +477,40 @@
   .btn:hover { background: var(--accent-ink); }
   .btn.ghost { background: none; color: var(--muted); border: 1px solid var(--line); }
   .btn.ghost:hover { background: var(--line-soft); color: var(--ink); }
+
+  /* ---------------------------------------------------- knowledge base ---
+     What the archive actually holds, and the two ways to grow it: a first
+     crawl for an install with nothing, and a check/review/apply cycle for one
+     that already works. pakpatat/archive.py does the fetching; this only
+     renders what it reports. */
+  .archv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+                 gap: 8px; margin: 2px 0 16px; }
+  .archv-stat { background: var(--line-soft); border-radius: var(--r); padding: 10px 12px; }
+  .archv-stat b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+                  font-variant-numeric: tabular-nums; }
+  .archv-stat span { font-size: 11px; color: var(--faint); }
+  .archv-sources { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; }
+  .archv-sources .badge { padding: 3px 9px; border-radius: 20px; }
+  .archv-section h3 { font-size: 11px; font-weight: 700; letter-spacing: .08em;
+                      text-transform: uppercase; color: var(--faint); margin: 18px 0 8px; }
+  .archv-topics { display: flex; flex-wrap: wrap; gap: 6px; max-height: 118px; overflow-y: auto; }
+  .archv-chip { font-size: 11.5px; background: var(--line-soft); border-radius: 999px;
+               padding: 4px 10px; color: var(--muted); }
+  .archv-chip b { color: var(--ink); font-weight: 700; margin-left: 5px; }
+  .archv-empty { text-align: center; padding: 22px 10px 6px; color: var(--muted);
+                font-size: 13.5px; line-height: 1.6; }
+  .archv-empty .ico { font-size: 30px; display: block; margin-bottom: 8px; }
+  .archv-list { list-style: none; margin: 8px 0 0; padding: 0; max-height: 140px;
+               overflow-y: auto; display: grid; gap: 4px; }
+  .archv-list li { font-size: 12.5px; color: var(--muted); padding: 5px 9px;
+                   border-radius: 7px; background: var(--line-soft); overflow: hidden;
+                   text-overflow: ellipsis; white-space: nowrap; }
+  .archv-meta { font-size: 11.5px; color: var(--faint); margin: 0 0 2px; }
+  /* Mirrors .splash-checks .act -- same run/progress/message anatomy, reused
+     rather than reinvented so a setup step looks and behaves identically
+     whether it started on the splash or from this panel. */
+  .archv-run { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .archv-hr { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
 
   #toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
            background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500;
@@ -524,6 +581,9 @@
   <div class="rail-foot">
     <button class="railbtn" id="guideBtn" type="button">
       <span>💡</span><span data-i18n="guideTitle">What can I ask?</span>
+    </button>
+    <button class="railbtn" id="archiveBtn" type="button">
+      <span>📚</span><span data-i18n="archiveNav">Knowledge base</span>
     </button>
     <button class="railbtn" id="settingsBtn" type="button">
       <span>⚙</span><span data-i18n="settings">Settings</span>
@@ -601,6 +661,22 @@
       <button id="saveBtn" class="btn" type="button" data-i18n="save">Save</button>
       <button id="cancelBtn" class="btn ghost" type="button" data-i18n="cancel">Cancel</button>
       <span id="saveMsg" class="note"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Knowledge base: what the archive holds, and how to grow or refresh it.
+     Body is built entirely in JS (renderArchive) because how many states this
+     panel can be in -- empty, ready, update pending, update staged, each
+     mid-action -- makes a static markup skeleton harder to keep honest than a
+     small render function. -->
+<div id="archiveModal" class="scrim" hidden>
+  <div class="sheet wide" role="dialog" aria-modal="true" aria-labelledby="archiveTitle">
+    <h2 id="archiveTitle" data-i18n="archiveTitle">Knowledge base</h2>
+    <p class="lede" data-i18n="archiveLede"></p>
+    <div id="archiveBody"></div>
+    <div class="row end">
+      <button class="btn ghost" id="archiveClose" type="button" data-i18n="close">Close</button>
     </div>
   </div>
 </div>
@@ -775,7 +851,26 @@ const STR = {
     brandsub: "Answers what it knows",
     tagline: "It answers what it knows. It says so when it doesn't.",
     continueAnyway: "Continue anyway",
+    startNow: "Start",
     checking: "Checking this computer…",
+    // Setup the app can do for itself, from the splash. Named as the action
+    // the person is taking, not the machinery: "Build the search index" means
+    // nothing to a case worker, "Get it ready" does.
+    actBuildIndex: "Get it ready", actPullModel: "Download it now",
+    actGetOllama: "Get the offline AI engine", actSettings: "Open Settings",
+    actAfterOllama: "Install it, then reopen this app.",
+    setupStarting: "Starting…",
+    setupReading: "Reading the archive…",
+    setupModel: "Loading the language model…",
+    setupEmbedding: "Preparing the archive for searching",
+    setupWriting: "Saving…",
+    setupInstalling: "Putting it in place…",
+    setupWorking: "Working",
+    setupDownloading: "Downloading",
+    setupDone: "Ready.",
+    setupBusy: "Already running — please wait.",
+    setupFailed: "Could not finish",
+    setupKeepOpen: "This can take a few minutes. Leave the app open.",
     new: "New question", recent: "Recent", settings: "Settings",
     untitled: "New question",
     scope: "Sources", scopeAll: "All sources", scopeNew: "Latest guidance",
@@ -829,12 +924,55 @@ const STR = {
     guideEnglishOnly: "The offline model on this computer writes English only, so the questions are listed in English. You can still type your question in Burmese — the archive is searched in Burmese and the answer comes back in English. For answers in Burmese, choose an online provider in Settings.",
     langDowngraded: "You asked in Burmese. The offline model on this computer cannot write Burmese reliably, so this answer is in English — the sources below were still found from your Burmese question. For answers in Burmese, choose an online provider in Settings.",
     guide: GUIDE_EN,
+    // ---------------------------------------------------- knowledge base ---
+    // The panel behind the 📚 rail button: what the archive holds, and the
+    // crawl/check/review/apply cycle that grows or refreshes it. See
+    // pakpatat/archive.py for what each button actually does.
+    archiveNav: "Knowledge base", archiveTitle: "Knowledge base",
+    archiveLede: "What the archive holds, and how current it is. Checking or updating reaches help.unhcr.org directly — nothing else here does.",
+    archiveEmptyBody: "There is no archive on this computer yet, so there is nothing to search. You can download the current guidance from help.unhcr.org now.",
+    archiveGetBtn: "Get the archive",
+    archiveGetHint: "This reads help.unhcr.org directly, a few pages at a time, and takes a couple of minutes. It only brings in what is live on the site today — ask whoever manages this archive for a copy that also includes retired-site records and partner materials, if those matter to you.",
+    archiveStatDocs: "Documents", archiveStatChunks: "Passages indexed",
+    archiveStatMedia: "Files & images",
+    archiveStatCaptured: "Captured", archiveStatChecked: "Last checked",
+    archiveStatApplied: "Last updated",
+    archiveSourceNew: "Current site", archiveSourceOld: "Earlier site",
+    archiveSourcePartner: "Partner materials",
+    archiveCoverageTitle: "Topics covered",
+    archiveCoverageNone: "No topic labels yet — check for updates to add them.",
+    archiveCheckBtn: "Check for updates",
+    archiveNeverChecked: "This archive has not been checked against the live site yet.",
+    archiveUpToDate: "Up to date as of the last check.",
+    archivePendingTitle: n => `${n} page${n === 1 ? '' : 's'} changed since the last check.`,
+    archiveBuildBtn: "Review the update",
+    archiveStagedBody: (n, chunks) => `${n} page${n === 1 ? '' : 's'} fetched and rebuilt — ${chunks} passages now indexed.`,
+    archiveStagedNoReport: "An update is ready to review.",
+    archiveCriticalTitle: "Check these before applying — a phone number, fee or email changed",
+    archiveCriticalNone: "No phone number, fee or email changed.",
+    archiveApplyBtn: "Apply update", archiveDiscardBtn: "Discard",
   },
   my: {
     brandsub: "သိသည်ကို ဖြေသည်",
     tagline: "သိသည်ကို ဖြေသည်။ မသိလျှင် မသိကြောင်း ပြောသည်။",
     continueAnyway: "ဆက်လက်လုပ်ဆောင်ရန်",
+    startNow: "စတင်ရန်",
     checking: "ဤကွန်ပျူတာကို စစ်ဆေးနေသည်…",
+    actBuildIndex: "အသင့်ပြင်ရန်", actPullModel: "ယခု ဒေါင်းလုဒ်လုပ်ရန်",
+    actGetOllama: "အော့ဖ်လိုင်း AI အင်ဂျင်ကို ရယူရန်", actSettings: "ဆက်တင်ဖွင့်ရန်",
+    actAfterOllama: "ထည့်သွင်းပြီးနောက် ဤအက်ပ်ကို ပြန်ဖွင့်ပါ။",
+    setupStarting: "စတင်နေသည်…",
+    setupReading: "မှတ်တမ်းများကို ဖတ်နေသည်…",
+    setupModel: "ဘာသာစကားမော်ဒယ်ကို ဖွင့်နေသည်…",
+    setupEmbedding: "ရှာဖွေမှုအတွက် မှတ်တမ်းများကို ပြင်ဆင်နေသည်",
+    setupWriting: "သိမ်းဆည်းနေသည်…",
+    setupInstalling: "နေရာချနေသည်…",
+    setupWorking: "လုပ်ဆောင်နေသည်",
+    setupDownloading: "ဒေါင်းလုဒ်လုပ်နေသည်",
+    setupDone: "အသင့်ဖြစ်ပါပြီ။",
+    setupBusy: "လုပ်ဆောင်နေဆဲဖြစ်သည် — ခဏစောင့်ပါ။",
+    setupFailed: "မပြီးမြောက်ပါ",
+    setupKeepOpen: "မိနစ်အနည်းငယ် ကြာနိုင်သည်။ အက်ပ်ကို ဖွင့်ထားပါ။",
     new: "မေးခွန်းအသစ်", recent: "မကြာသေးမီက", settings: "ဆက်တင်",
     untitled: "မေးခွန်းအသစ်",
     scope: "ရင်းမြစ်", scopeAll: "အားလုံး", scopeNew: "နောက်ဆုံးအချက်အလက်",
@@ -907,6 +1045,35 @@ const STR = {
     guideEnglishOnly: "ဤကွန်ပျူတာရှိ အဖြေပေးသည့် AI သည် အင်္ဂလိပ်ဘာသာဖြင့်သာ ရေးနိုင်သဖြင့် မေးခွန်းများကို အင်္ဂလိပ်ဘာသာဖြင့် ပြထားသည်။ မေးခွန်းကို မြန်မာဘာသာဖြင့် ရိုက်ထည့်နိုင်ပါသေးသည် — မှတ်တမ်းတိုက်ကို မြန်မာဘာသာဖြင့် ရှာဖွေပြီး အဖြေကို အင်္ဂလိပ်ဘာသာဖြင့် ပြန်ဖြေပါမည်။ မြန်မာဘာသာဖြင့် အဖြေလိုပါက ဆက်တင်တွင် အွန်လိုင်း AI ကို ရွေးပါ။",
     langDowngraded: "သင် မြန်မာဘာသာဖြင့် မေးထားသည်။ ဤကွန်ပျူတာရှိ အဖြေပေးသည့် AI သည် မြန်မာဘာသာကို ယုံကြည်စိတ်ချစွာ မရေးနိုင်သဖြင့် ဤအဖြေမှာ အင်္ဂလိပ်ဘာသာဖြင့် ဖြစ်သည် — အောက်ပါ ရင်းမြစ်များကိုမူ သင့်မြန်မာမေးခွန်းဖြင့်ပင် ရှာတွေ့ခြင်း ဖြစ်သည်။ မြန်မာဘာသာဖြင့် အဖြေလိုပါက ဆက်တင်တွင် အွန်လိုင်း AI ကို ရွေးပါ။",
     guide: GUIDE_MY,
+    // ---------------------------------------------------- knowledge base ---
+    // NEEDS NATIVE-SPEAKER CONFIRMATION, same as guideEnglishOnly/langDowngraded
+    // above: this whole block is new, composed rather than carried over from a
+    // reviewed translation. If a reviewer is unhappy with any line, delete it
+    // rather than patch it -- t() falls back to STR.en, which is the honest
+    // failure for a tool whose whole premise is not guessing.
+    archiveNav: "မှတ်တမ်းတိုက်", archiveTitle: "မှတ်တမ်းတိုက်",
+    archiveLede: "မှတ်တမ်းတိုက်တွင် ဘာတွေပါသည်၊ ဘယ်လောက် မကြာသေးသလဲ။ စစ်ဆေးခြင်း သို့မဟုတ် အသစ်တင်ခြင်းသည်သာ help.unhcr.org ကို တိုက်ရိုက် ဆက်သွယ်ပါသည်။",
+    archiveEmptyBody: "ဤကွန်ပျူတာတွင် မှတ်တမ်းတိုက် မရှိသေးပါ၊ ရှာဖွေစရာလည်း မရှိပါ။ help.unhcr.org မှ လက်ရှိလမ်းညွှန်ချက်များကို ယခု ဒေါင်းလုဒ်လုပ်နိုင်သည်။",
+    archiveGetBtn: "မှတ်တမ်းတိုက် ရယူရန်",
+    archiveGetHint: "ဤလုပ်ဆောင်ချက်သည် help.unhcr.org ကို တိုက်ရိုက် ဖတ်ပြီး တစ်ကြိမ်လျှင် စာမျက်နှာအနည်းငယ်စီ ရယူသဖြင့် မိနစ်အနည်းငယ် ကြာနိုင်သည်။ ယနေ့ site ပေါ်ရှိ အကြောင်းအရာများကိုသာ ရယူနိုင်ပြီး၊ ပိတ်သွားသော site ဟောင်းမှတ်တမ်းများနှင့် partner materials များအတွက် မှတ်တမ်းတိုက် တာဝန်ခံထံမှ မိတ္တူတောင်းပါ။",
+    archiveStatDocs: "စာရွက်စာတမ်းများ", archiveStatChunks: "ရှာဖွေနိုင်သော အပိုင်းများ",
+    archiveStatMedia: "ဖိုင်နှင့် ပုံများ",
+    archiveStatCaptured: "ရယူသည့်ရက်", archiveStatChecked: "နောက်ဆုံးစစ်ဆေးချိန်",
+    archiveStatApplied: "နောက်ဆုံးအသစ်တင်ချိန်",
+    archiveSourceNew: "လက်ရှိ site", archiveSourceOld: "site ဟောင်း",
+    archiveSourcePartner: "Partner materials",
+    archiveCoverageTitle: "ဖုံးအုပ်ထားသော ခေါင်းစဉ်များ",
+    archiveCoverageNone: "ခေါင်းစဉ် အညွှန်းများ မရှိသေးပါ — အသစ်ရှိမရှိ စစ်ဆေးခြင်းဖြင့် ထည့်နိုင်သည်။",
+    archiveCheckBtn: "အသစ်ရှိမရှိ စစ်ဆေးရန်",
+    archiveNeverChecked: "ဤမှတ်တမ်းတိုက်ကို လက်ရှိ site နှင့် တစ်ကြိမ်မှ နှိုင်းယှဉ် မစစ်ဆေးရသေးပါ။",
+    archiveUpToDate: "နောက်ဆုံးစစ်ဆေးချိန်အတိုင်း လက်ရှိအခြေအနေဖြစ်သည်။",
+    archivePendingTitle: n => `နောက်ဆုံးစစ်ဆေးချိန်မှစ၍ စာမျက်နှာ ${n} ခု ပြောင်းလဲသွားသည်။`,
+    archiveBuildBtn: "အသစ်ကို ပြန်စစ်ဆေးရန်",
+    archiveStagedBody: (n, chunks) => `စာမျက်နှာ ${n} ခု ရယူပြီး ပြန်လည်တည်ဆောက်ပြီးပါပြီ — အပိုင်း ${chunks} ခု စာရင်းသွင်းပြီးပါပြီ။`,
+    archiveStagedNoReport: "အသစ်တစ်ခု ပြန်စစ်ဆေးရန် အသင့်ရှိနေသည်။",
+    archiveCriticalTitle: "အသစ်မတင်မီ ဤအချက်များကို စစ်ဆေးပါ — ဖုန်းနံပါတ်၊ ကြေးငွေ သို့မဟုတ် အီးမေးလ် ပြောင်းလဲသွားသည်",
+    archiveCriticalNone: "ဖုန်းနံပါတ်၊ ကြေးငွေ သို့မဟုတ် အီးမေးလ် ပြောင်းလဲခြင်း မရှိပါ။",
+    archiveApplyBtn: "အသစ်ကို တင်ရန်", archiveDiscardBtn: "ပယ်ဖျက်ရန်",
   },
 };
 let LANG = localStorage.getItem('rm.lang') === 'my' ? 'my' : 'en';
@@ -925,6 +1092,11 @@ function applyLang() {
   // The guide is built from the language arrays, so rebuild it if it happens
   // to be open when someone switches language.
   if (!guideModal.hidden) renderGuide();
+  // Same reasoning for the knowledge-base panel: its body is plain text
+  // nodes, not data-i18n elements, so it needs an explicit rebuild -- from
+  // the last-loaded status, not a re-fetch, so switching language mid-crawl
+  // does not race the action already running.
+  if (typeof archiveModal !== 'undefined' && !archiveModal.hidden) renderArchive(ARCHIVE_STATUS);
 }
 document.getElementById('lang').onclick = e => {
   const b = e.target.closest('button[data-lang]'); if (!b) return;
@@ -1409,24 +1581,7 @@ form.addEventListener('submit', async e => {
       down();
     };
 
-    if (res.body && res.body.getReader) {
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = '';
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        const lines = buf.split('\n');
-        buf = lines.pop();                  // last piece may be incomplete
-        lines.forEach(takeLine);
-      }
-      takeLine(buf);                        // trailing line with no newline
-    } else {
-      // Older webviews expose no streaming body. We still get the whole
-      // response at the end, so the answer arrives -- just without progress.
-      (await res.text()).split('\n').forEach(takeLine);
-    }
+    await readNDJSON(res, takeLine);
   } catch {
     result = null;
   }
@@ -1574,6 +1729,32 @@ $('saveBtn').onclick = async () => {
   }
 };
 
+/* ------------------------------------------------------------ streaming ---
+   Both long jobs in this app -- answering a question and first-run setup --
+   reply as NDJSON: one JSON object per line, sent as it happens, so the OS
+   webview never sees a silent connection and gives up on it. Reading that is
+   the same six lines either way, so it lives here once.                     */
+async function readNDJSON(res, takeLine) {
+  if (res.body && res.body.getReader) {
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();                    // last piece may be incomplete
+      lines.forEach(takeLine);
+    }
+    takeLine(buf);                          // trailing line with no newline
+  } else {
+    // Older webviews expose no streaming body. The whole response still
+    // arrives at the end, so the work completes -- just without progress.
+    (await res.text()).split('\n').forEach(takeLine);
+  }
+}
+
 /* --------------------------------------------------------------- splash ---
    Ask the machine what it actually has before pretending to be ready.
 
@@ -1589,6 +1770,183 @@ function hideSplash(el) {
   setTimeout(() => { el.style.display = 'none'; }, 500);   // after the fade
 }
 
+/* The steps the app can run for itself. preflight names one of these in a
+   check's `action`; every other gap is advice only a person can act on, and
+   those rows deliberately get no button. */
+const SETUP_LABEL = {
+  rebuild_index: 'actBuildIndex', pull_model: 'actPullModel',
+  get_ollama: 'actGetOllama', settings: 'actSettings',
+  // The splash's failing "Archive" row can now offer the same crawl the
+  // Knowledge base panel does, for an install with nothing on it yet.
+  crawl_archive: 'archiveGetBtn',
+};
+const STAGE_LABEL = {
+  starting: 'setupStarting', reading: 'setupReading', model: 'setupModel',
+  embedding: 'setupEmbedding', writing: 'setupWriting',
+  installing: 'setupInstalling', downloading: 'setupDownloading',
+  working: 'setupWorking',
+  // The Knowledge base panel's crawl/check/update actions (pakpatat/archive.py)
+  // report through this same machinery, so they need the same map.
+  connecting: 'setupConnecting', crawling: 'setupCrawling',
+  cataloguing: 'setupCataloguing', checking: 'setupChecking',
+  fetching: 'setupFetching', chunking: 'setupChunking',
+};
+
+function stageText(ev, pct) {
+  const label = STAGE_LABEL[ev.stage] ? t(STAGE_LABEL[ev.stage]) : '';
+  let line = label;
+  if (pct !== null) line += ` ${pct}%`;
+  else if (ev.elapsed) line += ` ${ev.elapsed}s`;
+  // The page title mid-crawl, or Ollama's own status line mid-pull -- both
+  // were already sent (pakpatat/archive.py's `detail`, pakpatat/firstrun.py's
+  // pull_model) and neither was ever shown; a bare percentage told a person
+  // THAT something was happening but not WHAT, which is the one thing worth
+  // knowing during a two-minute crawl.
+  if (ev.detail) line += ` — ${ev.detail}`;
+  return line;
+}
+
+/* Run one setup step, reporting into the row that asked for it.
+
+   The percentage comes from the server or not at all -- a fake bar that
+   advances on a timer is a lie, and this one runs long enough (minutes for a
+   2GB model) that being lied to is the difference between waiting and
+   force-quitting halfway through a download. */
+async function runSetup(action, ui, refresh) {
+  const fill = ui.bar.firstElementChild;
+  ui.btn.disabled = true;
+  ui.bar.hidden = false;
+  ui.msg.className = 'chk-msg';
+  ui.msg.textContent = t('setupStarting');
+  ui.hint.textContent = t('setupKeepOpen');
+
+  let done = null;
+  // The server interleaves keep-alive heartbeats with real progress, because
+  // the connection has to keep making noise through the silent stretches. On
+  // screen those two must not compete: letting a heartbeat overwrite the line
+  // made the text flip between "41%" and "Working 6s" every few seconds and
+  // the bar flip between filled and indeterminate, which reads as a fault.
+  // So a heartbeat only ever adds the elapsed time to whatever was last
+  // genuinely reported, and never touches the bar.
+  let label = '';
+  try {
+    const res = await fetch('/setup', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    });
+    await readNDJSON(res, line => {
+      if (!line.trim()) return;
+      let ev;
+      try { ev = JSON.parse(line); } catch { return; }
+      if (ev.done === true) { done = ev; return; }
+
+      if (ev.stage === 'working') {
+        ui.msg.textContent = label
+          ? `${label} · ${ev.elapsed}s`
+          : `${t('setupWorking')} ${ev.elapsed}s`;
+        return;
+      }
+      const pct = (ev.total && ev.count != null)
+        ? Math.max(1, Math.round(ev.count / ev.total * 100)) : null;
+      // Indeterminate whenever there is no real number to show: loading the
+      // model and swapping the index in report no progress of their own.
+      ui.bar.classList.toggle('wait', pct === null);
+      if (pct !== null) fill.style.width = pct + '%';
+      label = stageText(ev, pct);
+      ui.msg.textContent = label;
+    });
+  } catch {
+    done = null;                              // window or server went away
+  }
+
+  ui.hint.textContent = '';
+  if (done && done.ok) {
+    ui.bar.classList.remove('wait');
+    fill.style.width = '100%';
+    ui.msg.textContent = t('setupDone');
+    // Ask the machine again rather than assuming: the point of this screen is
+    // that it reports what is actually there, and that has to stay true of the
+    // moment right after a fix as much as the moment before it.
+    refresh();
+    return;
+  }
+  ui.bar.hidden = true;
+  ui.btn.disabled = false;
+  ui.msg.className = 'chk-msg err';
+  ui.msg.textContent = !done ? t('offline')
+    : done.busy ? t('setupBusy')
+    : `${t('setupFailed')} — ${done.error || ''}`;
+}
+
+function actionRow(check, refresh) {
+  const wrap = document.createElement('div');
+  wrap.className = 'act';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'chk-btn';
+  btn.textContent = t(SETUP_LABEL[check.action] || 'actSettings');
+  const bar = document.createElement('div');
+  bar.className = 'chk-bar wait';
+  bar.hidden = true;
+  bar.appendChild(document.createElement('span'));
+  const msg = document.createElement('div');
+  msg.className = 'chk-msg';
+  const hint = document.createElement('div');
+  hint.className = 'chk-hint';
+  wrap.append(btn, bar, msg, hint);
+
+  const ui = { btn, bar, msg, hint };
+  btn.onclick = () => {
+    if (check.action === 'settings') {
+      hideSplash(document.getElementById('splash'));
+      openSettings();
+      return;
+    }
+    if (check.action === 'get_ollama') {
+      // Installing a second application needs an administrator and a restart,
+      // so the honest offer is the download page, not a button that pretends
+      // to do it. The URL lives on the server side; nothing here can choose it.
+      btn.disabled = true;
+      fetch('/open-ollama', { method: 'POST' })
+        .catch(() => {})
+        .finally(() => { btn.disabled = false; msg.textContent = t('actAfterOllama'); });
+      return;
+    }
+    runSetup(check.action, ui, refresh);
+  };
+  return wrap;
+}
+
+function renderChecks(report, list, refresh) {
+  list.innerHTML = '';
+  report.checks.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'chk ' + (c.ok ? 'ok' : 'bad');
+    row.style.animationDelay = (i * 55) + 'ms';
+    row.append(Object.assign(document.createElement('i'), {textContent: c.ok ? '✓' : '✕'}));
+    const span = document.createElement('span');
+    span.textContent = `${c.label} — ${c.detail}`;
+    if (!c.ok && c.fix) span.append(' ' + c.fix);
+    if (!c.ok && c.command) {
+      span.append(' ');
+      span.append(Object.assign(document.createElement('code'), {textContent: c.command}));
+    }
+    if (!c.ok && c.action) span.append(actionRow(c, refresh));
+    row.append(span);
+    list.appendChild(row);
+  });
+}
+
+function renderProvenance(report, note) {
+  const p = report.provenance || {};
+  const bits = [];
+  if (p.captured) bits.push(`Archive captured ${p.captured}.`);
+  if (p.pending_count) bits.push(`${p.pending_count} change(s) staged for review.`);
+  if (p.credit) bits.push(p.credit);
+  note.textContent = bits.join(' ');
+  note.hidden = bits.length === 0;
+}
+
 async function splashBoot() {
   const el = document.getElementById('splash');
   const list = document.getElementById('splashChecks');
@@ -1596,50 +1954,285 @@ async function splashBoot() {
   const go = document.getElementById('splashGo');
   const started = Date.now();
 
-  list.innerHTML = `<div class="row"><i>·</i><span>${t('checking')}</span></div>`;
+  list.innerHTML = `<div class="chk"><i>·</i><span>${t('checking')}</span></div>`;
 
-  let report = null;
-  try {
-    const r = await fetch('/preflight');
-    if (r.ok) report = await r.json();
-  } catch {
-    // Server not up yet is not worth showing here; a real problem will surface
-    // when a question is asked, with better context than a splash can give.
+  async function load() {
+    try {
+      const r = await fetch('/preflight');
+      return r.ok ? await r.json() : null;
+    } catch {
+      // Server not up yet is not worth showing here; a real problem will
+      // surface when a question is asked, with better context than a splash
+      // can give.
+      return null;
+    }
   }
 
-  if (report) {
-    list.innerHTML = '';
-    report.checks.forEach((c, i) => {
-      const row = document.createElement('div');
-      row.className = 'chk ' + (c.ok ? 'ok' : 'bad');
-      row.style.animationDelay = (i * 55) + 'ms';
-      row.append(Object.assign(document.createElement('i'), {textContent: c.ok ? '✓' : '✕'}));
-      const span = document.createElement('span');
-      span.textContent = `${c.label} — ${c.detail}`;
-      if (!c.ok && c.fix) {
-        span.append(' ');
-        span.append(Object.assign(document.createElement('code'), {textContent: c.fix}));
-      }
-      row.append(span);
-      list.appendChild(row);
-    });
-
-    const p = report.provenance || {};
-    const bits = [];
-    if (p.captured) bits.push(`Archive captured ${p.captured}.`);
-    if (p.pending_count) bits.push(`${p.pending_count} change(s) staged for review.`);
-    if (p.credit) bits.push(p.credit);
-    note.textContent = bits.join(' ');
-    note.hidden = bits.length === 0;
+  // Redrawn after every completed setup step, so a row that has just been
+  // fixed turns green in front of the person who fixed it -- and so the button
+  // disappears along with the problem instead of inviting a second run.
+  //
+  // `offerStart` is false only on a clean boot, where the splash dismisses
+  // itself a beat later and a button would flash up for a quarter of a second.
+  // Once anyone has stood on this screen and fixed something, they get a way
+  // in -- reading "Start" rather than "Continue anyway", because by then it is
+  // no longer an "anyway".
+  function show(report, offerStart) {
+    renderChecks(report, list, refresh);
+    renderProvenance(report, note);
+    if (!offerStart) return;
+    go.hidden = false;
+    go.dataset.i18n = report.ready ? 'startNow' : 'continueAnyway';
+    go.textContent = t(go.dataset.i18n);
+    go.onclick = () => hideSplash(el);
   }
+
+  async function refresh() {
+    const report = await load();
+    if (report) show(report, true);
+  }
+
+  const report = await load();
+  if (report) show(report, !report.ready);
 
   // A failed check must not lock anyone out. Part of the archive may still be
   // searchable, and a person sitting in front of a case worker is not helped
   // by a screen announcing that the tool has decided today is not the day.
-  if (report && !report.ready) { go.hidden = false; go.onclick = () => hideSplash(el); return; }
+  if (report && !report.ready) return;
 
   setTimeout(() => hideSplash(el), Math.max(0, SPLASH_MIN_MS - (Date.now() - started)));
 }
+
+/* ---------------------------------------------------- knowledge base -----
+   What the archive holds, and the two ways to grow it: a first crawl for an
+   install with nothing (crawl_archive), and a check -> review -> apply cycle
+   for one that already works -- the same human-in-the-loop review
+   pipeline/refresh.py asks for from a terminal, moved onto a button.
+   pakpatat/archive.py does the fetching, diffing and atomic swap; this only
+   renders what GET /archive reports and runs actions through the same
+   runSetup() the splash uses, so a crawl looks and behaves identically
+   whether it started here or there. */
+const archiveModal = $('archiveModal');
+const archiveBody = $('archiveBody');
+
+// Which badge style and label each corpus source gets in the "Sources" row.
+// '' (partner materials) falls back to the plain, unstyled .badge.
+const SOURCE_LABEL = {
+  new_site_help_unhcr_org: ['archiveSourceNew', 'new'],
+  old_site_refugeemalaysia_org: ['archiveSourceOld', 'old'],
+  partner_materials: ['archiveSourcePartner', ''],
+};
+const CRITICAL_LABEL = { phone: 'kindPhone', money: 'kindAmount', email: 'kindEmail' };
+
+function fmtWhen(s) {
+  // "2026-08-18 22:58:28" -> "2026-08-18 22:58". Seconds are precision nobody
+  // reading this panel needs, and a raw ISO string with a T in it reads as a
+  // bug report rather than a date.
+  return s ? String(s).slice(0, 16).replace('T', ' ') : null;
+}
+
+// A citation-free reading of a doc_path for the critical-facts list --
+// "help_unhcr_2026/pages/refugee-medical-insurance-remedi/index.md" tells a
+// developer which file changed; "refugee medical insurance remedi" tells a
+// case worker which PAGE did, which is the reader this panel is for.
+function niceDoc(path) {
+  const parts = String(path).split('/');
+  const last = parts[parts.length - 1];
+  const base = last === 'index.md' ? parts[parts.length - 2] : last.replace(/\.md$/, '');
+  return String(base || last).replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/[-_]/g, ' ');
+}
+
+function archStat(value, label) {
+  const box = document.createElement('div');
+  box.className = 'archv-stat';
+  box.append(Object.assign(document.createElement('b'), {textContent: value ?? '—'}));
+  box.append(Object.assign(document.createElement('span'), {textContent: label}));
+  return box;
+}
+
+// One action, built exactly like the splash's actionRow (chk-btn + chk-bar +
+// chk-msg + chk-hint) and driven by the same runSetup() -- reused rather than
+// reimplemented so the two surfaces cannot drift into different behaviour for
+// the same server action.
+function archRun(action, label, cls) {
+  const wrap = document.createElement('div');
+  wrap.className = 'archv-run';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = cls || 'btn';
+  btn.textContent = label;
+  const bar = document.createElement('div');
+  bar.className = 'chk-bar wait';
+  bar.hidden = true;
+  bar.appendChild(document.createElement('span'));
+  const msg = document.createElement('div'); msg.className = 'chk-msg';
+  const hint = document.createElement('div'); hint.className = 'chk-hint';
+  wrap.append(btn, bar, msg, hint);
+  btn.onclick = () => runSetup(action, {btn, bar, msg, hint}, openArchive);
+  return wrap;
+}
+
+function renderArchive(s) {
+  archiveBody.innerHTML = '';
+  if (!s) {
+    archiveBody.append(Object.assign(document.createElement('div'), {
+      className: 'archv-empty', textContent: t('offline'),
+    }));
+    return;
+  }
+
+  // ---- empty state: nothing on this computer to search yet ----
+  if (!s.has_archive) {
+    const empty = document.createElement('div');
+    empty.className = 'archv-empty';
+    empty.append(Object.assign(document.createElement('span'),
+                               {className: 'ico', textContent: '📭'}));
+    empty.append(Object.assign(document.createElement('div'),
+                               {textContent: t('archiveEmptyBody')}));
+    archiveBody.append(empty);
+    archiveBody.append(archRun('crawl_archive', t('archiveGetBtn')));
+    archiveBody.append(Object.assign(document.createElement('p'),
+                                     {className: 'note', textContent: t('archiveGetHint')}));
+    return;
+  }
+
+  // ---- what it holds ----
+  const stats = document.createElement('div');
+  stats.className = 'archv-stats';
+  stats.append(
+    archStat(s.documents, t('archiveStatDocs')),
+    archStat(s.chunks, t('archiveStatChunks')),
+    archStat(s.media, t('archiveStatMedia')),
+  );
+  archiveBody.append(stats);
+
+  const sources = document.createElement('div');
+  sources.className = 'archv-sources';
+  for (const [key, count] of Object.entries(s.by_source || {})) {
+    const [labelKey, cls] = SOURCE_LABEL[key] || [null, ''];
+    sources.append(Object.assign(document.createElement('span'), {
+      className: 'badge' + (cls ? ' ' + cls : ''),
+      textContent: `${labelKey ? t(labelKey) : key} · ${count}`,
+    }));
+  }
+  archiveBody.append(sources);
+
+  const meta = document.createElement('div');
+  meta.className = 'archv-meta';
+  meta.textContent = [
+    s.captured && `${t('archiveStatCaptured')}: ${fmtWhen(s.captured)}`,
+    s.last_checked && `${t('archiveStatChecked')}: ${fmtWhen(s.last_checked)}`,
+    s.last_applied && `${t('archiveStatApplied')}: ${fmtWhen(s.last_applied)}`,
+  ].filter(Boolean).join('   ·   ');
+  archiveBody.append(meta);
+
+  // ---- coverage: what it is actually ABOUT, not just how big it is ----
+  const covSection = document.createElement('div');
+  covSection.className = 'archv-section';
+  covSection.append(Object.assign(document.createElement('h3'),
+                                  {textContent: t('archiveCoverageTitle')}));
+  const topics = Object.entries(s.by_topic || {});
+  if (topics.length) {
+    const chips = document.createElement('div');
+    chips.className = 'archv-topics';
+    for (const [name, count] of topics.slice(0, 24)) {
+      const chip = document.createElement('span');
+      chip.className = 'archv-chip';
+      chip.append(name, Object.assign(document.createElement('b'), {textContent: count}));
+      chips.append(chip);
+    }
+    covSection.append(chips);
+  } else {
+    covSection.append(Object.assign(document.createElement('p'),
+                                    {className: 'note', textContent: t('archiveCoverageNone')}));
+  }
+  archiveBody.append(covSection);
+  archiveBody.append(Object.assign(document.createElement('hr'), {className: 'archv-hr'}));
+
+  // ---- sync state: staged (reviewed, awaiting Apply/Discard) beats pending
+  // (detected, not yet fetched) beats up-to-date. Never both at once: stage()
+  // clears the raw pending ids as soon as it turns them into a staged build. ----
+  if (s.staged) {
+    const report = s.staged_report;
+    archiveBody.append(Object.assign(document.createElement('p'), {
+      className: 'note',
+      textContent: report ? t('archiveStagedBody')(report.fetched.length, report.chunks)
+                          : t('archiveStagedNoReport'),
+    }));
+    if (report && report.fetched && report.fetched.length) {
+      const ul = document.createElement('ul');
+      ul.className = 'archv-list';
+      for (const f of report.fetched)
+        ul.append(Object.assign(document.createElement('li'), {textContent: f.title}));
+      archiveBody.append(ul);
+    }
+    // The one thing this whole review step exists to catch: a hotline, a fee
+    // or an email address about to change. Reused styling from .alert -- the
+    // same red the unverified-fact banner uses on an answer, because this is
+    // the same category of "read this before you trust it".
+    if (report && report.critical && report.critical.length) {
+      const alert = document.createElement('div');
+      alert.className = 'alert';
+      alert.append(Object.assign(document.createElement('b'), {textContent: t('archiveCriticalTitle')}));
+      const ul = document.createElement('ul');
+      for (const c of report.critical) {
+        const li = document.createElement('li');
+        li.append(`${t(CRITICAL_LABEL[c.kind] || 'kindAmount')} — ${niceDoc(c.doc)}: `);
+        [...(c.added || []), ...(c.removed || [])].forEach((v, i) => {
+          if (i) li.append(', ');
+          li.append(Object.assign(document.createElement('code'), {textContent: v}));
+        });
+        ul.append(li);
+      }
+      alert.append(ul);
+      archiveBody.append(alert);
+    } else if (report) {
+      archiveBody.append(Object.assign(document.createElement('p'),
+                                       {className: 'note', textContent: t('archiveCriticalNone')}));
+    }
+    archiveBody.append(archRun('apply_update', t('archiveApplyBtn'), 'btn'));
+    archiveBody.append(archRun('discard_update', t('archiveDiscardBtn'), 'btn ghost'));
+  } else if (s.pending_ids && s.pending_ids.length) {
+    archiveBody.append(Object.assign(document.createElement('p'), {
+      className: 'note', textContent: t('archivePendingTitle')(s.pending_ids.length),
+    }));
+    if (s.pending_titles && s.pending_titles.length) {
+      const ul = document.createElement('ul');
+      ul.className = 'archv-list';
+      for (const p of s.pending_titles)
+        ul.append(Object.assign(document.createElement('li'), {textContent: p.title}));
+      archiveBody.append(ul);
+    }
+    archiveBody.append(archRun('stage_update', t('archiveBuildBtn'), 'btn'));
+  } else {
+    archiveBody.append(Object.assign(document.createElement('p'), {
+      className: 'note',
+      textContent: s.last_checked ? t('archiveUpToDate') : t('archiveNeverChecked'),
+    }));
+    archiveBody.append(archRun('check_updates', t('archiveCheckBtn'), 'btn'));
+  }
+}
+
+async function loadArchiveStatus() {
+  try {
+    const r = await fetch('/archive');
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+
+// Cached so a language switch while the panel is open can redraw from the
+// last real answer instead of either freezing in the old language or firing
+// a second /archive request that could land mid-action.
+let ARCHIVE_STATUS = null;
+
+async function openArchive() {
+  archiveModal.hidden = false;
+  ARCHIVE_STATUS = await loadArchiveStatus();
+  renderArchive(ARCHIVE_STATUS);
+}
+
+$('archiveBtn').onclick = openArchive;
+$('archiveClose').onclick = () => { archiveModal.hidden = true; };
 
 /* ================================= start ================================ */
 applyLang();

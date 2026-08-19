@@ -131,6 +131,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             # so it answers in milliseconds and never blocks on the network.
             from pakpatat import preflight
             self._json(preflight.run())
+        elif self.path == "/archive":
+            # What the Knowledge base panel shows: document/chunk counts,
+            # coverage by topic, and whether an update is sitting reviewed and
+            # unapplied. Local and read-only, like /preflight -- fetching from
+            # the live site only ever happens from a POST /setup action the
+            # person pressed a button for.
+            from pakpatat import archive
+            self._json(archive.status())
         elif self.path == "/brand":
             from pakpatat import brand
             self._json({
@@ -144,9 +152,42 @@ class Handler(http.server.BaseHTTPRequestHandler):
         else:
             self._send(404, b"not found", "text/plain")
 
+    def _same_origin(self) -> bool:
+        """Did this POST come from our own UI, or from some other page?
+
+        Binding to 127.0.0.1 keeps the network out; it does not keep other
+        pages out. Any site open in any browser on this machine can POST to
+        127.0.0.1 on a guessed port, and every POST here changes something --
+        /settings writes an API key into .env, and /setup can now start a 2GB
+        download. Browsers attach Origin to every cross-origin POST, and our
+        own UI's Origin is exactly the Host it was served from, so this costs
+        nothing and closes that door. Requests with no Origin at all are not
+        browsers (curl, mcp_server.py) and are left alone.
+        """
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        return origin.split("//", 1)[-1] == self.headers.get("Host", "")
+
     def do_POST(self):  # noqa: N802
+        if not self._same_origin():
+            self._send(403, b"cross-origin request refused", "text/plain")
+            return
         length = int(self.headers.get("Content-Length", 0))
         payload = json.loads(self.rfile.read(length) or b"{}")
+
+        if self.path == "/setup":
+            self._setup(payload)
+            return
+
+        if self.path == "/open-ollama":
+            # One fixed URL, taken from nothing the page sends. An endpoint that
+            # opened whatever URL it was handed would be an arbitrary-program
+            # launcher reachable from any page in any browser on this machine,
+            # which is a high price for saving a constant.
+            webbrowser.open("https://ollama.com/download")
+            self._json({"ok": True})
+            return
 
         if self.path == "/settings":
             from pakpatat import settings
@@ -222,13 +263,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         # Check the provider is usable BEFORE spending time retrieving, so the
         # user gets "Ollama isn't running" rather than a stack trace.
-        from pakpatat import config, settings
+        # ollama imported here, not inside the branch below: the progress loop
+        # asks it what stage to report, and on the happy path (already ready)
+        # that branch never runs -- which left the name unbound.
+        from pakpatat import config, ollama, settings
         ready, msg = settings.check_ready()
         if not ready and config.MODEL_PROVIDER == "ollama":
             # First question after a cold start: wait for the local engine to
             # finish booting instead of making the user ask again.
             self._chunk({"stage": "starting", "elapsed": 0})
-            from pakpatat import ollama
             started, _ = ollama.ensure(timeout=45.0)
             if started:
                 ready, msg = settings.check_ready()
@@ -270,11 +313,84 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elapsed += HEARTBEAT_SECONDS
             # Retrieval is fast; anything past a couple of seconds is the model
             # writing. Say so, rather than leaving "searching" up for a minute.
-            stage = "searching" if elapsed < HEARTBEAT_SECONDS * 2 else "writing"
+            #
+            # Unless the weights are still loading -- on a machine short on RAM
+            # that takes minutes, and "Writing the answer…" for four of them is
+            # a false statement that reads as a hang. Ask what is actually
+            # happening instead of inferring it from a stopwatch.
+            if config.MODEL_PROVIDER == "ollama" and ollama.warm_state()[0] == "loading":
+                stage = "starting"
+            elif elapsed < HEARTBEAT_SECONDS * 2:
+                stage = "searching"
+            else:
+                stage = "writing"
             if not self._chunk({"stage": stage, "elapsed": int(elapsed)}):
                 return  # window closed; the worker finishes and exits on its own
 
         self._chunk({"done": True, **box["result"]})
+        self._close_stream()
+
+    def _setup(self, payload) -> None:
+        """Run one first-run setup step, streaming progress while it works.
+
+        Streamed for the same reason /ask is: the OS webview abandons a request
+        that sends nothing for ~60 seconds, and both steps here run far longer
+        than that -- an index build is minutes of embedding, a model pull is
+        gigabytes. It also gives the person watching a number that moves, which
+        is the whole difference between "installing" and "frozen".
+
+        The work runs on a worker thread so this one stays free to emit a
+        heartbeat through the silent stretches (fastembed's own 220MB download
+        reports nothing at all while it runs).
+        """
+        import queue as _queue
+
+        from pakpatat import firstrun
+
+        action = payload.get("action") or ""
+        events: _queue.Queue = _queue.Queue()
+        box: dict = {}
+
+        def work() -> None:
+            try:
+                box["result"] = {"ok": True, **(firstrun.run(action, events.put) or {})}
+            except firstrun.Busy as e:
+                box["result"] = {"ok": False, "busy": True, "error": str(e)}
+            except firstrun.Unavailable as e:
+                box["result"] = {"ok": False, "error": str(e)}
+            except Exception as e:                     # noqa: BLE001
+                box["result"] = {"ok": False, "error": f"Could not finish: {e}"}
+            finally:
+                # Wake the reporting loop immediately instead of leaving it
+                # blocked on the queue for a last heartbeat interval -- that
+                # delay lands entirely on "finished but not yet said so".
+                events.put(None)
+
+        self._open_stream()
+        worker = threading.Thread(target=work, daemon=True)
+        worker.start()
+
+        alive = self._chunk({"stage": "starting"})
+        elapsed = 0.0
+        while True:
+            try:
+                ev = events.get(timeout=HEARTBEAT_SECONDS)
+            except _queue.Empty:
+                if not worker.is_alive():
+                    break               # belt and braces: sentinel never arrived
+                elapsed += HEARTBEAT_SECONDS
+                ev = {"stage": "working", "elapsed": int(elapsed)}
+            if ev is None:
+                break                   # worker finished; everything is drained
+            # A closed window stops the reporting, never the work: a half-built
+            # index left behind by an impatient click is worse than one nobody
+            # watched finish. The staging swap in firstrun.py makes finishing safe.
+            if alive and not self._chunk(ev):
+                alive = False
+
+        if alive:
+            self._chunk({"done": True, **box.get(
+                "result", {"ok": False, "error": "Setup ended unexpectedly."})})
         self._close_stream()
 
     def log_message(self, *args):  # silence per-request console spam
@@ -318,11 +434,16 @@ def set_app_icon() -> None:
 
 
 def main() -> None:
-    # If this computer answers questions locally, bring Ollama up while the
-    # window is still opening -- by the time a question is typed it's ready.
+    # If this computer answers questions locally, bring Ollama up AND pull the
+    # weights into memory while the window is still opening. Starting the
+    # server alone was not enough: the model load is the slow part (measured
+    # 253s cold vs 0.2s warm on the reference M1), and it used to be paid by
+    # whoever asked the first question, as four minutes of apparent silence.
+    # Now it overlaps the splash and the typing.
     from pakpatat import config, ollama
     if config.MODEL_PROVIDER == "ollama":
-        ollama.start_in_background()
+        ollama.warm_in_background(config.MODEL_NAME, num_ctx=config.NUM_CTX,
+                                  keep_alive=config.OLLAMA_KEEP_ALIVE)
 
     from pakpatat import brand
 
@@ -409,7 +530,7 @@ def selftest() -> int:
     check("brand icons present", (config.BUNDLE / "ui" / "brand").is_dir())
     check("writable state dir", os.access(config.HOME, os.W_OK), str(config.HOME))
     for mod in ("pakpatat.graph", "pakpatat.retrieve", "pakpatat.postcard",
-                "pakpatat.preflight", "pakpatat.settings"):
+                "pakpatat.preflight", "pakpatat.settings", "pakpatat.firstrun"):
         try:
             __import__(mod); check(f"import {mod}", True)
         except Exception as e:                                # noqa: BLE001
@@ -426,4 +547,20 @@ def selftest() -> int:
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(selftest())
+    if "--preflight" in sys.argv:
+        # The same five checks the splash runs, from the command line, exiting
+        # non-zero when the app could not answer a question. A frozen build has
+        # no `python -m pakpatat.preflight` to fall back on, and the one thing
+        # worth testing before shipping a .dmg is exactly this: what a fresh
+        # install reports on its first launch. scripts/build-macos.command runs
+        # it against a throwaway data directory to find out.
+        from pakpatat import brand, preflight
+        report = preflight.run()
+        print(brand.console_banner(ascii_only=True))
+        for c in report["checks"]:
+            print(f"  {'OK ' if c['ok'] else 'XX '} {c['label']:<32} {c['detail']}")
+            if not c["ok"] and (c["command"] or c["fix"]):
+                print(f"       fix: {c['command'] or c['fix']}")
+        print(f"\n  {'Ready.' if report['ready'] else 'Not ready.'}")
+        sys.exit(0 if report["ready"] else 1)
     main()

@@ -204,9 +204,16 @@ Download **`Pakpatat-<version>-macOS-arm64.dmg`** from the
 - Your archive and settings live in `~/Library/Application Support/Pakpatat`,
   not inside the app, so replacing the app never touches them.
 
-Same two caveats as Windows: no archive content is included, and offline
-answers need [Ollama](https://ollama.com/download) plus
-`ollama pull qwen2.5:3b-instruct`.
+Same two caveats as Windows: the published `.dmg` includes no archive content,
+and offline answers need [Ollama](https://ollama.com/download) plus the
+answering model.
+
+You do not have to run either of those by hand. The app's first screen checks
+the five things it needs and offers a button for the ones it can do itself —
+building the search index, and downloading the answering model through Ollama
+with a progress bar. The archive is the one gap no button can close: it is not
+in the download, so ask whoever gave you the app for a copy that includes it
+(the section below is how they make one).
 
 ### macOS and Linux — from a checkout
 
@@ -222,6 +229,33 @@ The launcher creates the virtualenv, installs dependencies, builds the search
 index, writes `.env` from `.env.example`, starts the Ollama server, offers to
 download the model on first run, and opens the app. Later launches skip
 straight to opening it.
+
+### Building a ready-to-use macOS app yourself
+
+On the Mac that holds the archive:
+
+```bash
+scripts/build-macos.command        # or double-click it in Finder
+```
+
+It bundles the embedding model, asks whether to include the archive, builds the
+`.app` and `.dmg`, and then runs the frozen app's own preflight against a
+throwaway data folder — so you find out *before* shipping whether a fresh
+install opens green or opens with red rows. The archive question is asked out
+loud every time on purpose: it is a rights decision, not a build flag. Read
+[NOTICE.md](NOTICE.md) before answering yes.
+
+What a bundled build still cannot carry is the answering model (~2GB, and it
+lives inside Ollama). The recipient gets a button for it on first launch.
+
+The equivalent by hand, if you want the steps rather than the script:
+
+```bash
+python build_index.py                                   # caches the 220MB model
+PAKPATAT_BUNDLE_ARCHIVE=1 pyinstaller packaging/pakpatat-macos.spec --noconfirm
+./dist/Pakpatat.app/Contents/MacOS/Pakpatat --selftest   # finds its own parts?
+PAKPATAT_DATA=/tmp/fresh ./dist/Pakpatat.app/Contents/MacOS/Pakpatat --preflight
+```
 
 ### Building the Windows installer yourself
 
@@ -397,12 +431,22 @@ docstring.
 ## Keeping the archive current
 
 Guidance for refugees goes stale, and stale guidance here is not a cosmetic
-problem. `pipeline/refresh.py` re-checks the live site — in steps, with a human
-in the loop:
+problem. The app's own **Knowledge base** panel (the 📚 button in the sidebar)
+does this from a button, for anyone: **Get the archive** for an install that
+has none, **Check for updates** → **Review the update** → **Apply update** for
+one that already works. It shows what the archive actually covers (documents,
+passages, topics), reports any phone number, fee or email an update would
+change before you apply it, and never touches what the app answers from until
+you press Apply. See `pakpatat/archive.py` for how it crawls politely
+(robots.txt, rate limiting, a request budget) — the same rules
+`pipeline/refresh.py` below follows from a terminal.
+
+`pipeline/refresh.py` is the same steps from the command line, useful for
+scripting a nightly check or working from a curated `PAKPATAT_ARCHIVE` that
+also holds the retired-site capture and partner materials the panel's crawl
+cannot reach (it only knows the live site):
 
 ```bash
-pip install -r requirements-refresh.txt   # operator only; the app never fetches
-
 python pipeline/refresh.py detect    # what changed? cheap, read-only
 python pipeline/refresh.py fetch     # pull just the changed pages
 python pipeline/refresh.py build     # rebuild corpus + index into data/staging/

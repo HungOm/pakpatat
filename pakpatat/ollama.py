@@ -8,7 +8,12 @@ background. If it isn't installed we say so plainly instead of failing later
 with a connection error.
 
 Nothing here downloads models -- that can be several gigabytes, so it stays a
-deliberate choice by the user.
+deliberate choice by the user (pakpatat/firstrun.py does it from a button, with
+a progress bar, once the user asks for it).
+
+It DOES load an already-downloaded model into memory at launch -- see warm()
+below for why that is the difference between a 7-second answer and a
+four-minute one.
 """
 import json
 import os
@@ -172,3 +177,86 @@ def ensure(timeout: float = 30.0) -> tuple[bool, str]:
 def start_in_background() -> None:
     """Fire-and-forget startup, so opening the app stays instant."""
     threading.Thread(target=ensure, kwargs={"timeout": 60.0}, daemon=True).start()
+
+
+# ------------------------------------------------------- loading the weights
+#
+# Starting the SERVER is not the slow part. Loading the MODEL is, and until
+# this existed the app paid that cost on the user's first question:
+#
+#     cold   load 253.0s + prefill 8.0s + generate 2.4s = 263s
+#     warm   load   0.2s + prefill 0.2s + generate 6.8s =   7.3s
+#
+# (measured on the reference M1 under memory pressure, 2.3GB of weights at
+# roughly disk speed). Four minutes of "Writing the answer…" is indistinguishable
+# from a hung app, and a case worker with someone sitting across from them will
+# have given up long before it lands.
+#
+# So the weights are pulled into memory while the splash is still on screen and
+# the question is still being typed. Nothing waits on it: a question asked
+# mid-load simply joins the same load already in progress.
+_warm_state = "cold"      # cold | loading | ready | failed
+_warm_detail = ""
+
+
+def warm_state() -> tuple[str, str]:
+    """(state, detail) for the UI -- so a long first load can say what it is."""
+    return _warm_state, _warm_detail
+
+
+def warm(model: str, num_ctx: int | None = None,
+         keep_alive: str | None = None) -> bool:
+    """Load `model` into memory now, generating nothing.
+
+    An empty prompt makes Ollama load the weights and return -- the documented
+    preload. The options MUST match what the app will send for real questions:
+    Ollama reloads the whole model when num_ctx changes, so warming with the
+    default 4096 and then asking with 8192 would pay the load cost TWICE and
+    leave this function doing harm instead of nothing.
+    """
+    global _warm_state, _warm_detail
+    payload: dict = {"model": model, "prompt": ""}
+    if keep_alive:
+        payload["keep_alive"] = keep_alive
+    if num_ctx:
+        payload["options"] = {"num_ctx": num_ctx}
+
+    req = urllib.request.Request(
+        f"{host()}/api/generate", data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"})
+    try:
+        # No timeout. On a machine short on RAM this legitimately takes
+        # minutes, and abandoning it halfway would leave the first question to
+        # start the load all over again.
+        with urllib.request.urlopen(req) as r:
+            r.read()
+        _warm_state, _warm_detail = "ready", ""
+        return True
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        _warm_state, _warm_detail = "failed", str(e)
+        return False
+
+
+def warm_in_background(model: str, num_ctx: int | None = None,
+                       keep_alive: str | None = None) -> None:
+    """Start the server if needed, then load the weights. Returns at once."""
+    global _warm_state
+    if _warm_state in ("loading", "ready"):
+        return
+    _warm_state = "loading"
+
+    def run() -> None:
+        global _warm_state, _warm_detail
+        ok, msg = ensure(timeout=60.0)
+        if not ok:
+            _warm_state, _warm_detail = "failed", msg
+            return
+        if has_model(model):
+            warm(model, num_ctx, keep_alive)
+        else:
+            # Nothing to warm -- preflight already offers to download it, and
+            # pretending to load a model that is not here would report "ready"
+            # for weights that do not exist.
+            _warm_state, _warm_detail = "failed", "model not downloaded"
+
+    threading.Thread(target=run, daemon=True).start()

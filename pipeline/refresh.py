@@ -196,8 +196,8 @@ def _md_tools():
         return BeautifulSoup, markdownify
     except ImportError:
         raise SystemExit(
-            "Fetching page content needs two extra packages:\n"
-            "    pip install -r requirements-refresh.txt\n"
+            "Fetching page content needs beautifulsoup4 and markdownify:\n"
+            "    pip install -r requirements.txt\n"
             "(`detect` does not need them -- it is standard library only.)")
 
 

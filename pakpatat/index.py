@@ -60,7 +60,7 @@ def embed_text(chunk: dict) -> str:
     return "\n".join(parts)
 
 
-def build(out_dir=None, corpus=None) -> None:
+def build(out_dir=None, corpus=None, progress=None) -> None:
     """Build the index.
 
     `out_dir` writes somewhere other than data/index/. The refresh pipeline
@@ -68,12 +68,22 @@ def build(out_dir=None, corpus=None) -> None:
     a human has read the diff -- because build() overwrites the two index files
     in place, and the desktop app may be reading them at that moment. A case
     worker mid-question should never see a half-written index.
+
+    `progress(stage, done, total)` reports the same steps this function prints,
+    for callers with no console to print to. The desktop app builds the index
+    from a button on the splash (pakpatat/firstrun.py) and a build with no visible
+    progress is indistinguishable from a hang -- this one takes minutes.
     """
     from fastembed import TextEmbedding
+
+    def _say(stage, done=None, total=None):
+        if progress:
+            progress(stage, done, total)
 
     chunks = load_corpus(corpus)
     src = pathlib.Path(corpus) if corpus else config.CORPUS
     print(f"Loaded {len(chunks)} chunks from {src.name}")
+    _say("reading", 0, len(chunks))
 
     out_dir = pathlib.Path(out_dir) if out_dir else config.INDEX_DIR
     out_vectors = out_dir / "vectors.npy"
@@ -81,13 +91,22 @@ def build(out_dir=None, corpus=None) -> None:
 
     print(f"Loading embedding model ({config.EMBED_MODEL})...")
     print("  First run downloads ~220MB; after that it works fully offline.")
+    _say("model", None, None)
     model = TextEmbedding(config.EMBED_MODEL)
 
     texts = [embed_text(c) for c in chunks]
     print("Embedding (this takes a minute on first run)...")
-    vectors = np.array(list(model.embed(texts)), dtype=np.float32)
+    # Consumed one at a time rather than list(...) so the caller can be told how
+    # far along it is. Same result, same order -- embed() is a generator.
+    rows = []
+    for i, vec in enumerate(model.embed(texts), 1):
+        rows.append(vec)
+        if i % 25 == 0 or i == len(texts):
+            _say("embedding", i, len(texts))
+    vectors = np.array(rows, dtype=np.float32)
     # Pre-normalise so cosine similarity is a plain dot product at query time.
     vectors /= np.linalg.norm(vectors, axis=1, keepdims=True)
+    _say("writing", None, None)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     np.save(out_vectors, vectors)

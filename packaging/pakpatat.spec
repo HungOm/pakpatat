@@ -44,6 +44,17 @@ hiddenimports = [
     "pakpatat.graph", "pakpatat.retrieve", "pakpatat.factcheck",
     "pakpatat.settings", "pakpatat.ollama", "pakpatat.preflight",
     "pakpatat.postcard", "pakpatat.brand", "pakpatat.index",
+    # Imported inside a request handler, so nothing static points at it and
+    # PyInstaller cannot see it -- without this the frozen app's setup buttons
+    # fail with ModuleNotFoundError the first time anyone presses one.
+    "pakpatat.firstrun",
+    # Same reason -- the Knowledge base panel's crawl/check/update
+    # actions and the corpus chunker they call are both imported lazily.
+    "pakpatat.archive", "pakpatat.corpus",
+    # bs4/markdownify: also imported lazily (inside archive.py's
+    # to_markdown()), and needed by any install now that the
+    # Knowledge base panel can crawl for itself.
+    "bs4", "soupsieve", "markdownify",
 ]
 
 # onnxruntime, tokenizers and fastembed all ship native libraries and load
