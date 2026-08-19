@@ -40,15 +40,25 @@ exist.
 
 ## Scraping responsibly
 
-**This software fetches from `help.unhcr.org` itself.** Not only as an operator
-script: the desktop app's Knowledge base panel will crawl the site from a
-button, and the person pressing it may be a case worker who has never read this
-file. That is a deliberate choice — an install with no archive was previously a
-dead end for anyone without a developer — but it means the politeness is the
-software's responsibility, not the reader's good intentions.
+**Nothing in this repository contacts `help.unhcr.org`.** Cloning it, building
+it, and the release workflows in `.github/workflows/` never fetch a single UNHCR
+page — the only thing a build downloads is the embedding model, from Hugging
+Face. Publishing this code puts no load on UNHCR at all.
 
-So it is enforced in code, in `pakpatat/scrape.py`, on every request this
-project makes:
+**An installed copy fetches, and only when a person asks it to.** There is no
+fetch on launch, no background check, no telemetry. Every route to UNHCR is one
+someone deliberately took:
+
+| what fetches | what starts it |
+|---|---|
+| Knowledge base panel — *Get the archive*, *Check for updates*, *Review the update* | a button press in the running app |
+| `pipeline/refresh.py detect` / `fetch` / `bootstrap` | an operator typing it |
+| the nightly change check | opt-in only, via `scripts/install-schedule.command`; never installed by the launchers |
+
+That still means a case worker who has never opened this file can start a
+crawl. So the politeness is the software's responsibility rather than the
+reader's good intentions, and it is enforced in code, in `pakpatat/scrape.py`,
+on every request this project makes:
 
 - `robots.txt` is fetched and obeyed, and a site whose `robots.txt` cannot be
   read is treated as forbidden rather than permitted

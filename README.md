@@ -139,12 +139,17 @@ This matters before you clone, fork or publish anything built on it.
 refresh pipeline, the evaluation harness, the desktop app, and the MCP server.
 Code only. **MIT licensed.**
 
-The app can *fetch* an archive for itself — the Knowledge base panel crawls
-`help.unhcr.org` from a button, politely and rate-limited
-([NOTICE.md](NOTICE.md) lists what is enforced). That is how a fresh install
-gets something to search. It is not the same thing as this repository carrying
-UNHCR's content, and it does not make redistributing what you fetched your
-decision to make.
+**The repository itself never touches UNHCR.** Cloning and building — including
+the release workflows — fetch nothing from `help.unhcr.org`; the only download
+in a build is the embedding model.
+
+An *installed* copy can fetch, and only when someone asks it to: the Knowledge
+base panel crawls the site from a button, politely and rate-limited
+([NOTICE.md](NOTICE.md) lists what is enforced and every route that can start
+one). There is no fetch on launch and no background check. That is how a fresh
+install gets something to search — it is not the same thing as this repository
+carrying UNHCR's content, and it does not make redistributing what you fetched
+your decision to make.
 
 **Deliberately absent, and git-ignored:**
 
