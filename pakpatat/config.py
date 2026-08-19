@@ -241,14 +241,60 @@ WEAK_SCORE = float(os.getenv("ASSISTANT_WEAK_SCORE", "0.50"))
 # ranking score so that stale material loses TIES to current material without
 # disappearing.
 #
-# Kept mild on purpose. The retired refugeemalaysia.org capture is 262 of 605
-# chunks and includes whole topics the new site dropped (NGO clinic directory,
-# Verify Plus, the refugee lexicon). Demoting it steeply would swap a staleness
-# problem for a recall problem -- and of the two, the recall failure is worse,
-# because a stale answer is flagged to the reader while a missing one is
-# silently absent. Measured with eval/eval_retrieval.py --compare: at these
-# values recall@8 is unchanged at 90%.
+# This USED to be one flat multiplier over all 262 retired-site chunks, kept
+# deliberately mild because demoting them steeply would trade a staleness
+# problem for a recall problem -- the retired capture holds whole topics the new
+# site dropped, and of the two failures the missing answer is worse, because a
+# stale one is at least flagged to the reader.
+#
+# That tension was real but it was a false choice, and the data to dissolve it
+# was already on every chunk. gap_analysis.json records, per retired page,
+# whether the live site still covers it. Two populations hide inside that one
+# multiplier:
+#
+#   182 chunks the live site HAS an equivalent for (kept/renamed/merged/
+#       restructured). Here the live page is simply the better answer, and a
+#       mild 0.90 was too weak to reliably say so.
+#    80 chunks the live site has NOTHING for (dropped/downgraded) -- the NGO
+#       clinic directory, Verify Plus, the refugee lexicon. refugeemalaysia.org
+#       was taken down on 2026-07-14, so this is the only copy that exists.
+#       Demoting these at all is indefensible: there is no fresher version to
+#       prefer, only this or nothing.
+#
+# So the rule is now "live first, archive only where live is silent", enforced
+# per topic rather than per source. Measure any change to these with
+# eval/eval_retrieval.py --compare before shipping it.
+#
+# Retired material the live site still covers. Loses to the live page on any
+# question they both answer; still retrievable when nothing current matches.
+# 0.88, and that is a measured ceiling rather than a taste. Swept against
+# eval/eval_retrieval.py: 0.90 and 0.88 hold recall@8 at 90%; 0.85 and 0.80
+# both drop it to 80%, losing the Burmese "how much does REMEDI cover per day"
+# question entirely (the RM160 fact falls from rank 5 to 17). The cause is
+# worth recording, because it is the limit of this whole mechanism: the live
+# site HAS a REMEDI page, so gap_analysis marks the retired one "kept" -- but
+# the retired page carries that fact in 6 chunks and the live page in 1. A
+# page-level equivalence is not a fact-level one, so pushing "kept" material
+# harder than this starts deleting answers the live site does not actually
+# replace.
+SUPERSEDED_BY_LIVE_WEIGHT = float(
+    os.getenv("ASSISTANT_SUPERSEDED_BY_LIVE_WEIGHT", "0.88"))
+
+# Retired material with no live counterpart. NOT demoted -- 1.0 -- because
+# there is nothing current to prefer over it. Exposed as a setting so the
+# choice is visible and arguable, not so it should be lowered.
+GAP_WEIGHT = float(os.getenv("ASSISTANT_GAP_WEIGHT", "1.0"))
+
+# Retired pages gap_analysis.json could not classify, and the fallback whenever
+# no gap analysis is present at all (a fresh install that crawled only the live
+# site has none). Unchanged at the old flat value: "we do not know whether the
+# live site covers this" is exactly the case the mild demotion was written for.
 STALE_WEIGHT = float(os.getenv("ASSISTANT_STALE_WEIGHT", "0.90"))
+
+# Which gap_analysis statuses mean "the live site carries this topic now".
+# Kept here beside the weights because the two only make sense together.
+LIVE_HAS_EQUIVALENT = frozenset({"kept", "renamed", "merged", "restructured"})
+LIVE_HAS_NOTHING = frozenset({"dropped", "downgraded"})
 
 # Harder push for chunks a newer source is KNOWN to contradict (build_corpus.py
 # marks these from 07_partner_materials/_index.json). Not zero: the reader may

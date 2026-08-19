@@ -29,16 +29,33 @@ def _tokenize(text: str) -> list[str]:
 def _currency_weight(chunk: dict) -> float:
     """Ranking multiplier for how current a chunk is (1.0 = no change).
 
-    Deliberately mild. The retired site is not wrong by default -- it holds 262
-    chunks including topics the new site dropped, and demoting it steeply would
-    trade a staleness problem for a recall problem, which is the worse of the
-    two: a stale answer is flagged to the reader, a missing one is not.
+    LIVE FIRST, ARCHIVE ONLY WHERE LIVE IS SILENT -- decided per topic, not per
+    source. A retired page the live site still covers should lose to the live
+    version; a retired page the live site dropped is the only copy in
+    existence, and demoting it means preferring nothing over something.
+
+    Which of the two a chunk is comes from gap_analysis.json, resolved at build
+    time into `status` (see pakpatat/corpus.py) so no lookup happens per query.
+    An archive with no gap analysis -- a fresh install that crawled only the
+    live site -- lands on `unmapped` and gets the old mild treatment, which is
+    the honest weight for "we do not know".
     """
-    if (chunk.get("status") or "").lower() == "superseded":
+    status = (chunk.get("status") or "").lower()
+
+    # Operator-supplied material contradicting a scraped page. Strongest signal
+    # here and unrelated to which site a chunk came from, so it is checked
+    # first: someone read both and recorded that this one is wrong.
+    if status == "superseded":
         return config.SUPERSEDED_WEIGHT
-    if chunk["source"] == "old_site_refugeemalaysia_org":
-        return config.STALE_WEIGHT
-    return 1.0
+
+    if chunk["source"] != "old_site_refugeemalaysia_org":
+        return 1.0
+
+    if status in config.LIVE_HAS_EQUIVALENT:
+        return config.SUPERSEDED_BY_LIVE_WEIGHT
+    if status in config.LIVE_HAS_NOTHING:
+        return config.GAP_WEIGHT
+    return config.STALE_WEIGHT
 
 
 def reset() -> None:
