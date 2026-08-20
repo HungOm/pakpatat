@@ -184,3 +184,6 @@
 "ui","archiveCriticalNone","No phone number, fee or email changed.","ဖုန်းနံပါတ်၊ ကြေးငွေ သို့မဟုတ် အီးမေးလ် ပြောင်းလဲခြင်း မရှိပါ။","","SAFE - interface text, never sent as a query"
 "ui","archiveApplyBtn","Apply update","အသစ်ကို တင်ရန်","","SAFE - interface text, never sent as a query"
 "ui","archiveDiscardBtn","Discard","ပယ်ဖျက်ရန်","","SAFE - interface text, never sent as a query"
+"ui","setupBundle","Downloading the shared archive…","မျှဝေထားသော မှတ်တမ်းတိုက်ကို ဒေါင်းလုဒ်လုပ်နေသည်…","","SAFE - interface text, never sent as a query"
+"ui","setupUnpacking","Unpacking the archive…","မှတ်တမ်းတိုက်ကို ဖြည်နေသည်…","","SAFE - interface text, never sent as a query"
+"ui","setupBundleSkipped","Could not use the shared archive — continuing with the live site only.","မျှဝေထားသော မှတ်တမ်းတိုက်ကို မသုံးနိုင်ပါ — လက်ရှိ site ဖြင့်သာ ဆက်လုပ်ပါမည်။","","SAFE - interface text, never sent as a query"

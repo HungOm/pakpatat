@@ -400,6 +400,28 @@ def capture(progress, budget: int = 400, interval: float | None = None) -> dict:
     those seconds is the difference between a light client and a nuisance.
     """
     _deps()
+
+    # STEP 0, when an operator has configured one: the half of the archive no
+    # crawl can reach. refugeemalaysia.org is gone and partner materials were
+    # never published, so those pages exist only in copies people hold. Fetched
+    # first, so the live crawl below writes over the top of it rather than the
+    # other way round -- current guidance should win any overlap, which is the
+    # same rule the ranking applies (config.SUPERSEDED_BY_LIVE_WEIGHT).
+    #
+    # Entirely optional. Nothing is configured by default and an install
+    # without it behaves exactly as before: live site only.
+    from . import bundle
+    bundled = None
+    if bundle.configured():
+        try:
+            bundled = bundle.fetch(progress)
+        except bundle.Unavailable as e:
+            # Not fatal. A wrong link or an expired token should not block the
+            # live crawl, which still produces a working app -- it should say
+            # so and carry on, because the alternative is an install with
+            # nothing at all because one optional URL was mistyped.
+            progress({"stage": "bundle_skipped", "detail": str(e)[:200]})
+
     arc = root() / NEW_SUBDIR
     arc.mkdir(parents=True, exist_ok=True)
 
@@ -487,7 +509,9 @@ def capture(progress, budget: int = 400, interval: float | None = None) -> dict:
 
     return {"documents": len(records), "media": len(media),
             "topics": len(tax.get("topics") or {}), "chunks": kb["total_chunks"],
-            "http": f.report()}
+            "http": f.report(),
+            "bundle": bundled,
+            "sources": kb.get("chunks_by_source") or {}}
 
 
 # --------------------------------------------------------------------- check
@@ -792,6 +816,15 @@ def discard() -> dict:
 
 
 # -------------------------------------------------------------------- status
+def _bundle_status() -> dict:
+    """Never let a reporting call take the panel down."""
+    try:
+        from . import bundle
+        return bundle.describe()
+    except Exception:                                          # noqa: BLE001
+        return {"configured": False}
+
+
 def status() -> dict:
     """Everything the archive panel shows. Local, read-only, instant."""
     state = load_state()
@@ -846,6 +879,10 @@ def status() -> dict:
         "pending_titles": pending_titles,
         "staged": staged,
         "staged_report": pending.get("report") if staged else None,
+        # Where the un-crawlable half would come from, if an operator has
+        # configured a source. Host and flags only -- never the URL, which for
+        # a private archive can carry a signed credential in its query string.
+        "bundle": _bundle_status(),
         "credit": "Guidance published by UNHCR and its partners.",
         "not_affiliated": (
             "This is an independent tool. It is not affiliated with, endorsed "

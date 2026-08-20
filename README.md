@@ -455,6 +455,53 @@ you press Apply. See `pakpatat/archive.py` for how it crawls politely
 (robots.txt, rate limiting, a request budget) — the same rules
 `pipeline/refresh.py` below follows from a terminal.
 
+### Giving another machine the half it cannot crawl
+
+The live site the app fetches for itself. The retired refugeemalaysia.org
+capture it cannot — that site went down on 2026-07-14, so its 80 remaining
+passages (the 22-clinic NGO directory, Verify Plus, the refugee lexicon) exist
+only in copies people already hold. Partner materials were never published at
+all.
+
+On the machine that has the archive:
+
+```bash
+scripts/make-archive-bundle.command          # ~3.6 MB — what the app indexes
+scripts/make-archive-bundle.command full     # ~1.8 GB — the whole archive
+```
+
+**Both produce identical search results.** Every retired-site passage comes
+from 30 `index.md` files totalling 214 KB; the corpus builder never opens
+`page.html` or `resources/`. The other 1.8 GB is training decks and posters —
+414 MB for one financial-literacy PDF — that this app cannot read a word of.
+Use `full` when handing over the whole archive to keep, not to make someone's
+app work.
+
+The script always packs from *inside* the archive root (zipping the folder
+instead of its contents is the mistake that unpacks fine and produces an app
+that answers nothing), verifies its own output unpacks correctly, and prints:
+
+```bash
+PAKPATAT_ARCHIVE_BUNDLE=https://…/pakpatat-archive-text.tar.gz
+PAKPATAT_ARCHIVE_SHA256=<digest>
+PAKPATAT_ARCHIVE_TOKEN=<if the host needs one>
+```
+
+Put those in the receiving install's `.env`. **Get the archive** then fetches
+the bundle, checks it against the digest, crawls the live site, and indexes
+both — live guidance winning any overlap. Nothing is configured by default; an
+install without these simply crawls the live site as before.
+
+Host it somewhere that needs a credential and serves the *file*, not a preview
+page. Share links from Drive, Dropbox and GitHub are rewritten to their
+download form automatically, and a response that turns out to be HTML is
+reported as such rather than failing as a corrupt archive. Note that a Drive
+"anyone with the link" share is readable by anyone who obtains the link —
+unlisted, not private. The contents are UNHCR's copyrighted work; read
+[NOTICE.md](NOTICE.md) before putting a bundle anywhere public.
+
+### From the command line
+
 `pipeline/refresh.py` is the same steps from the command line, useful for
 scripting a nightly check or working from a curated `PAKPATAT_ARCHIVE` that
 also holds the retired-site capture and partner materials the panel's crawl

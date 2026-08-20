@@ -871,6 +871,16 @@ const STR = {
     setupBusy: "Already running — please wait.",
     setupFailed: "Could not finish",
     setupKeepOpen: "This can take a few minutes. Leave the app open.",
+    // Archive crawl + bundle stages (pakpatat/archive.py, pakpatat/bundle.py).
+    setupBundle: "Downloading the shared archive…",
+    setupUnpacking: "Unpacking the archive…",
+    setupBundleSkipped: "Could not use the shared archive — continuing with the live site only.",
+    setupConnecting: "Connecting to help.unhcr.org…",
+    setupCrawling: "Reading pages…",
+    setupCataloguing: "Listing files and images…",
+    setupChecking: "Checking for updates…",
+    setupFetching: "Downloading changed pages…",
+    setupChunking: "Organising the archive…",
     new: "New question", recent: "Recent", settings: "Settings",
     untitled: "New question",
     scope: "Sources", scopeAll: "All sources", scopeNew: "Latest guidance",
@@ -973,6 +983,15 @@ const STR = {
     setupBusy: "လုပ်ဆောင်နေဆဲဖြစ်သည် — ခဏစောင့်ပါ။",
     setupFailed: "မပြီးမြောက်ပါ",
     setupKeepOpen: "မိနစ်အနည်းငယ် ကြာနိုင်သည်။ အက်ပ်ကို ဖွင့်ထားပါ။",
+    setupBundle: "မျှဝေထားသော မှတ်တမ်းတိုက်ကို ဒေါင်းလုဒ်လုပ်နေသည်…",
+    setupUnpacking: "မှတ်တမ်းတိုက်ကို ဖြည်နေသည်…",
+    setupBundleSkipped: "မျှဝေထားသော မှတ်တမ်းတိုက်ကို မသုံးနိုင်ပါ — လက်ရှိ site ဖြင့်သာ ဆက်လုပ်ပါမည်။",
+    setupConnecting: "help.unhcr.org သို့ ချိတ်ဆက်နေသည်…",
+    setupCrawling: "စာမျက်နှာများကို ဖတ်နေသည်…",
+    setupCataloguing: "ဖိုင်နှင့် ပုံများကို စာရင်းပြုစုနေသည်…",
+    setupChecking: "အသစ်ရှိမရှိ စစ်ဆေးနေသည်…",
+    setupFetching: "ပြောင်းလဲထားသော စာမျက်နှာများကို ဒေါင်းလုဒ်လုပ်နေသည်…",
+    setupChunking: "မှတ်တမ်းတိုက်ကို စုစည်းစီစဉ်နေသည်…",
     new: "မေးခွန်းအသစ်", recent: "မကြာသေးမီက", settings: "ဆက်တင်",
     untitled: "မေးခွန်းအသစ်",
     scope: "ရင်းမြစ်", scopeAll: "အားလုံး", scopeNew: "နောက်ဆုံးအချက်အလက်",
@@ -1790,7 +1809,15 @@ const STAGE_LABEL = {
   connecting: 'setupConnecting', crawling: 'setupCrawling',
   cataloguing: 'setupCataloguing', checking: 'setupChecking',
   fetching: 'setupFetching', chunking: 'setupChunking',
+  // The optional archive bundle (pakpatat/bundle.py), step 0 of a crawl.
+  bundle: 'setupBundle', unpacking: 'setupUnpacking',
 };
+
+/* A configured bundle that could not be fetched is reported and stepped over,
+   never fatal -- the live crawl still produces a working app. It gets its own
+   stage so the reason is shown rather than scrolling past inside a progress
+   line the next event overwrites. */
+const SKIP_STAGE = 'bundle_skipped';
 
 function stageText(ev, pct) {
   const label = STAGE_LABEL[ev.stage] ? t(STAGE_LABEL[ev.stage]) : '';
@@ -1840,6 +1867,10 @@ async function runSetup(action, ui, refresh) {
       try { ev = JSON.parse(line); } catch { return; }
       if (ev.done === true) { done = ev; return; }
 
+      if (ev.stage === SKIP_STAGE) {
+        ui.hint.textContent = `${t('setupBundleSkipped')} ${ev.detail || ''}`;
+        return;
+      }
       if (ev.stage === 'working') {
         ui.msg.textContent = label
           ? `${label} · ${ev.elapsed}s`

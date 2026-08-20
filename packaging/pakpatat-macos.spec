@@ -47,7 +47,7 @@ hiddenimports = [
     "pakpatat.firstrun",
     # Same reason -- the Knowledge base panel's crawl/check/update
     # actions and the corpus chunker they call are both imported lazily.
-    "pakpatat.archive", "pakpatat.corpus",
+    "pakpatat.archive", "pakpatat.corpus", "pakpatat.bundle",
     # bs4/markdownify: also imported lazily (inside archive.py's
     # to_markdown()), and needed by any install now that the
     # Knowledge base panel can crawl for itself.
