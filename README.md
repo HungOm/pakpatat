@@ -18,15 +18,17 @@ answer is shown.
 > This project is **not affiliated with UNHCR** and ships **no archive content**.
 > See [NOTICE.md](NOTICE.md).
 
+<img src="docs/screenshots/01-home.png" alt="The Päkpätät window: a sidebar with recent questions, four topic cards, and a question box" width="820">
+
 ## What it knows
 
 A reference operator's archive currently indexes:
 
 | | |
 |---|---|
-| **617** searchable passages | across **86** documents and **80** topics |
-| **73,486** words of guidance | held offline, on one laptop |
-| **334** passages | from the live **help.unhcr.org/malaysia** site |
+| **616** searchable passages | across **86** documents and **80** topics |
+| **73,409** words of guidance | held offline, on one laptop |
+| **333** passages | from the live **help.unhcr.org/malaysia** site |
 | **262** passages | from the retired **refugeemalaysia.org** capture — guidance taken offline on 2026-07-14, including topics the new site never carried |
 | **21** passages | from partner briefings given directly to the operating organisation |
 | **49** suggested questions | in **11** categories, English and Burmese — every one verified against the retriever before it was added |
@@ -109,7 +111,7 @@ prompting saves the answer.
 | | |
 |---|---|
 | recall@8 on the gold set | **90%** (9/10) |
-| prompt size | mean 2,977 tokens, max 4,305 |
+| prompt size | mean 2,951 tokens, max 4,588 |
 | retrieval latency | ~11 ms warm (dense 0.2 ms, BM25 0.8 ms) |
 | answer latency | 5–11 s on an Apple M1, local 3B model |
 
@@ -455,6 +457,11 @@ you press Apply. See `pakpatat/archive.py` for how it crawls politely
 (robots.txt, rate limiting, a request budget) — the same rules
 `pipeline/refresh.py` below follows from a terminal.
 
+<img src="docs/screenshots/02-knowledge-base.png" alt="The Knowledge base panel: 52 documents, 616 passages indexed, 55 files and images; source badges for the earlier site, current site and partner materials; topic coverage chips; and a Check for updates button" width="820">
+
+*The Knowledge base panel: what the archive holds, which topics it covers, and
+when it was last checked against the live site.*
+
 ### Giving another machine the half it cannot crawl
 
 The live site the app fetches for itself. The retired refugeemalaysia.org
@@ -569,6 +576,12 @@ pairs score 0.138) — so free-text K'Cho retrieval does not work, and the
 in-app guide is the supported path instead. Do not promise a language without
 running the measurement. [i18n/README.md](i18n/README.md) has the method and
 the numbers.
+
+<img src="docs/screenshots/03-guide.png" alt="The What can I ask panel, listing categories and questions in English with Burmese category names" width="820">
+
+*Every suggested question here was run through the retriever before it was
+added — suggesting a question the archive cannot answer teaches people the tool
+is useless exactly when they need it.*
 
 ## Contributing
 
