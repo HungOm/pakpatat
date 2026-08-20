@@ -89,11 +89,20 @@ the languages spoken, include those too. BUT if the sources genuinely hold no \
 addresses -- refugee learning centres, for example, are not listed individually \
 -- say so in one sentence and stop. Do NOT pad the answer with source text to \
 look like a list of places.
-10. FORMATTING: use markdown. Use "###" for section headings, "-" for lists, \
+10. WHERE TO GO ONLINE: when the answer tells someone to do something on a \
+website, portal or online form, say WHERE first -- name the page and give its \
+web address, copied EXACTLY from the sources: a link written in the source \
+text, or failing that the source's own "URL:" line. Then give the steps to \
+take on that page, in order: what to click, what to type, what to choose. \
+"Click on Create a new account" with no address sends someone off to search \
+for the page themselves. Never invent, shorten or tidy a link. If the sources \
+hold no link for the page, give the steps and say the archive does not hold \
+the page's address.
+11. FORMATTING: use markdown. Use "###" for section headings, "-" for lists, \
 and a markdown table when comparing two or more options across the same fields \
 (prices, plans, locations). Put each clinic or office on its own line. Do not \
 write a wall of prose when the answer is a list.
-11. WRITE AN ANSWER, DO NOT REPRINT THE SOURCES. Never use a citation tag as a \
+12. WRITE AN ANSWER, DO NOT REPRINT THE SOURCES. Never use a citation tag as a \
 heading ("### [S7]"), and never paste a source's text as a section. Cite with \
 [S7] inside your own sentence. If a source is not relevant to the question, \
 ignore it completely -- do not include it to fill space. An answer that repeats \
@@ -671,7 +680,7 @@ def node_verify(state: State) -> State:
     # A tag-as-heading is never legitimate, so those lines are removed outright.
     # Then, because stripping the heading still leaves the pasted text, the
     # answer is measured against the sources: if most of it is copied verbatim,
-    # it is not an answer and the reader is told so. Rule 11 asks the model not
+    # it is not an answer and the reader is told so. Rule 12 asks the model not
     # to do this; this is what happens when it does anyway.
     answer = re.sub(r"^[ \t]*#{1,6}[ \t]*\[S\d+\][ \t]*$\n?", "", answer,
                     flags=re.M)

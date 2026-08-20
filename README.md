@@ -129,6 +129,74 @@ person beside them.
 naming the provider. The claim on the box always matches what the software is
 actually doing.*
 
+## What it can do
+
+**Asking**
+
+- **Plain questions, English or Burmese** — the archive is searched in the
+  language you type, and every suggested question in the built-in guide was run
+  through the retriever before being listed.
+- **Follow-ups** — "how much for a child?" after a REMEDI question is rewritten
+  into a standalone search query, while the model still answers the words you
+  actually typed.
+- **Filter by currency** — all sources, latest guidance only, or earlier
+  records only.
+- **Honest refusal** — below the relevance gate the model is never called, and
+  "that is not in the archive" is returned instead of a guess.
+- **Weak-match warnings** — a thin best source is flagged to the reader rather
+  than presented at full confidence.
+- **Directory lookups** — the NGO clinic directory is searchable by town, name
+  or service (*"clinic in Klang"*, *"Tzu Chi clinic opening hours"*, *"which
+  clinics offer vaccination for children"* — each pulls 5–7 directory entries
+  into the answer), returning the address, phone, opening hours and services.
+  It is held here because the live site dropped it: 22 clinics that exist in no
+  other published copy. There is no map or distance sorting — matching is on the
+  place names written in the addresses.
+
+**Trusting the answer**
+
+- **Inline citations** — `[S1]`, `[S2]` against the pages each claim came from,
+  each verified in code and stripped if invented.
+- **Fact verification** — every phone number, email, fee and date must appear
+  verbatim in the sources, Burmese numerals included, or it is flagged as
+  unverified above the answer.
+- **Currency labelling** — sources are marked *current*, *earlier* or
+  *superseded*, so a retired page is never quoted as though it were live.
+- **Links back to UNHCR** — every answer ends in the pages it was built from.
+
+**Sharing**
+
+- **Save an answer as an image** — a branded card for WhatsApp or Telegram,
+  carrying the answer, its warnings and its sources; long answers paginate into
+  a numbered thread. Renders Burmese correctly or refuses rather than producing
+  broken glyphs.
+
+**Keeping it current**
+
+- **Get the archive** — crawls `help.unhcr.org/malaysia` from a button, obeying
+  `robots.txt` with rate limiting and a request budget.
+- **Check → review → apply** — updates are fetched and diffed into a staging
+  copy, and any changed phone number, fee or email is reported *before* you
+  apply it. Nothing the app answers from changes until you press Apply.
+- **Rollback copy** kept from the previous archive on every update.
+- **Archive bundles** — carry the un-crawlable half (a retired site, partner
+  materials) to another machine over a private link, checksum-verified.
+- **Topic coverage** — see which topics are thin before someone asks about them.
+- **Optional nightly check** — off unless you install it.
+
+**Running it**
+
+- **Fully offline after install** — retrieval, index and answers all local.
+- **Native desktop app** for Windows, macOS and Linux — no Electron, no Node.
+- **Self-repairing first run** — the splash reports the five things it needs and
+  offers a button for each one it can fix itself.
+- **Provider switching** — local Qwen by default; OpenAI, Anthropic or Google
+  with a key pasted into Settings.
+- **MCP server** — `search_archive`, `ask_archive` and `archive_stats` for use
+  from Claude Desktop or Claude Code.
+- **Regression-gated retrieval** — a gold set of real questions paired with the
+  exact fact each must surface, run with one command.
+
 ## How it works
 
 ```
