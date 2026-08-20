@@ -23,17 +23,18 @@ answer is shown.
 Asked about the My Services portal, it answers from the archive, step by step —
 offline, on the local model:
 
-<img src="docs/screenshots/04-ask-myservices.png" alt="Asked how to create a My Services account, the assistant lists the six steps from the archived guidance: create the account, acknowledge the privacy notice, enter an email address, register a Malaysian phone number that is not WhatsApp-only, set a password of at least nine characters, start the application" width="820">
+<img src="docs/screenshots/04-ask-myservices.png" alt="Asked how to create a My Services account, the assistant answers in numbered steps from the archived guidance — the privacy notice, the email verification code, a Malaysian phone number that is not WhatsApp-only — each step carrying its source citation" width="820">
 
 Asked what REMEDI costs, the answer carries the exact premiums — and says the
 child rate is a promotion, because the source says so:
 
 <img src="docs/screenshots/05-ask-remedi.png" alt="Asked what REMEDI is and how much it costs, the assistant explains the refugee medical insurance and gives the premiums: RM 150.00 for a child during the promotion, RM 183.60 after it closes, RM 183.60 per year for an adult" width="820">
 
-Every answer ends in the pages it came from. Here the price came from a partner
-briefing, with a warning that the public site may not show it yet:
+And every answer says where to go. The steps end in a **Where to go** list —
+the live help.unhcr.org pages themselves, linked in the answer and again on
+the source cards below it, every one badged current:
 
-<img src="docs/screenshots/06-sources.png" alt="The end of the REMEDI answer: an inline S1 citation, then a source card marked current, with a link to check the UNHCR page" width="820">
+<img src="docs/screenshots/06-sources.png" alt="The end of the My Services answer: a Where to go list linking the live Not Registered Start Your Application page and the My Services Portal page, each with its citation tag, followed by source cards badged current" width="820">
 
 ## What it knows
 
