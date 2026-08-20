@@ -440,7 +440,11 @@ def node_generate(state: State) -> State:
         f"{system_prompt(mirror_language=not downgraded)}\n\n"
         f"=== SOURCES FROM THE ARCHIVE ===\n{retrieve.format_sources(results)}\n\n"
         f"=== QUESTION ===\n{state['question']}\n\n"
-        f"Answer using only the sources above, citing [S#] for each claim."
+        f"Answer using only the sources above. If the reader must do something "
+        f"on a web page, start with where to go -- the page's name and its "
+        f"exact address copied from the sources -- then the steps to take on "
+        f"that page. Cite a source tag for EVERY claim, [S1] style: an answer "
+        f"without [S#] citations cannot be verified and will be flagged."
     )
     model = _model()
     response = model.invoke(base)
@@ -684,6 +688,49 @@ def node_verify(state: State) -> State:
     # to do this; this is what happens when it does anyway.
     answer = re.sub(r"^[ \t]*#{1,6}[ \t]*\[S\d+\][ \t]*$\n?", "", answer,
                     flags=re.M)
+
+    # LINK CHECK (code, not prompt).
+    #
+    # Rule 10 asks for the page's address next to the steps, and the model
+    # obliges -- but a small model tidies links the way it tidies prose.
+    # Observed on qwen2.5:3b: two real paths from different sources spliced
+    # into one address that has never existed. An invented link is worse than
+    # none: it 404s at the exact moment someone acts on the answer. So every
+    # address in the answer must appear in what the model was shown -- source
+    # text or the URL: lines -- or it is removed and the reader is pointed at
+    # the source cards, whose links come from the archive directly.
+    def _known_url(u: str) -> bool:
+        u = u.rstrip("/")
+        return u in rendered or f"{u}/" in rendered
+
+    bad_urls: list[str] = []
+
+    def _check_md_link(m: re.Match) -> str:
+        label, url = m.group(1), m.group(2)
+        if _known_url(url):
+            return m.group(0)
+        bad_urls.append(url)
+        return label
+
+    answer = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", _check_md_link, answer)
+
+    def _check_bare_url(m: re.Match) -> str:
+        url = m.group(0).rstrip(".,;:!?")
+        trailing = m.group(0)[len(url):]
+        if _known_url(url):
+            return m.group(0)
+        bad_urls.append(url)
+        return trailing
+
+    answer = re.sub(r"https?://[^\s)\]>\"']+", _check_bare_url, answer)
+
+    if bad_urls:
+        warnings.append(
+            f"Removed {len(bad_urls)} web address(es) that do not appear in "
+            f"the sources ({', '.join(sorted(set(bad_urls)))}). The links on "
+            f"the source cards below come straight from the archive -- use "
+            f"those."
+        )
 
     hay = re.sub(r"\s+", " ", rendered)
     lines = [ln.strip() for ln in answer.split("\n") if len(ln.strip()) >= 60]

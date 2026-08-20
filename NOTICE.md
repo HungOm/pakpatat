@@ -3,6 +3,32 @@
 Read this before adding data to a fork, and before publishing anything built
 with Päkpätät.
 
+## Who made this, and why
+
+Päkpätät was built by **Hung Om** for the community workers of one
+community-based organisation — so that the people answering questions all day
+could reach factual, sourced answers in seconds instead of searching hundreds
+of pages while someone sat waiting for one.
+
+It is published openly because that problem is not unique to one organisation.
+Anyone in the same position — another CBO, a volunteer network, a community
+leader elsewhere — is welcome to take the software and use it freely under the
+MIT licence, and to change it to fit whoever they serve.
+
+**No copyright infringement is intended, and none is necessary for this to
+work.** The software carries no UNHCR content and never has. What it carries is
+the ability to read guidance UNHCR already publishes, for exactly the people it
+was published for, on a computer belonging to the organisation reading it.
+Every answer names its source and links back to the original page, so the tool
+sends people *to* UNHCR rather than standing in front of it. Where an operator
+holds archived material of their own, it stays on their machine; whether it
+travels further is their decision and UNHCR's, not this project's — which is
+what the rest of this document is about.
+
+If anything here is a problem for a rights holder, contact the operating
+organisation and it will be removed on request. That commitment is not
+conditional on agreeing about whether it was necessary.
+
 ## This repository contains no archive content
 
 Päkpätät is **code only**. It ships:

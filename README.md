@@ -73,9 +73,13 @@ Nothing here is presented as UNHCR's own service, and no UNHCR branding is used.
 Where this archive and the live site disagree, the app says so rather than
 choosing silently.
 
-**Software:** MIT-licensed open source, built by **Hung Om**. The code is free
-to fork and run; the archive content is not covered by that licence and is not
-distributed — see [NOTICE.md](NOTICE.md).
+**Software:** MIT-licensed open source, built by **Hung Om** for the community
+workers of one community-based organisation, and published in case it is useful
+to anyone in the same position. The code is free to fork, run and change; the
+archive content is not covered by that licence and is not distributed. No
+infringement is intended and none is needed — every answer cites UNHCR and
+links back to it. See [NOTICE.md](NOTICE.md), which also carries a standing
+commitment to remove anything a rights holder objects to.
 
 ---
 
