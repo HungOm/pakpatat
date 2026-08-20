@@ -81,17 +81,53 @@ distributed — see [NOTICE.md](NOTICE.md).
 
 ## Why it exists
 
-A case worker at a community organisation is asked forty questions a day —
-*where can my child go to school, what does the insurance cover, who do I call
-if my brother has been detained* — and the answers sit scattered across
-hundreds of pages, some of which have been taken offline.
+**The information already exists.** UNHCR Malaysia and its partners publish it
+carefully and in public. Reaching it is the problem: it is spread across
+hundreds of pages, some of it retired along with the website that held it, and
+all of it written for someone with a browser, a data plan, and the patience to
+search in a second language.
 
-A general-purpose chatbot will answer all forty confidently, and invent a
-hotline number for at least one of them. In this domain a wrong phone number is
-not an inconvenience; it is a person calling a stranger in an emergency.
+So the searching falls to the people least equipped to do it — a mother working
+out where her child can go to school, a brother trying to find who to call
+after an arrest — and to the community organisations answering for them, forty
+questions a day, from memory.
 
-So Päkpätät is a graph, not a prompt. Three of its four safety layers are
-plain code that the model cannot talk its way past.
+**Päkpätät puts the whole archive on one laptop and answers plain questions
+about it.** Ask in English or Burmese and get back a written answer, not a link
+to go and read: the eligibility rules in order, the premium with its exact
+figures, the hotline with its digits intact — composed into clear prose and
+ending in the pages it came from. It serves a case worker and the person
+sitting across from them equally, because both are asking the same question.
+
+**And it says when it doesn't know.** A general-purpose chatbot answers all
+forty questions confidently and invents a hotline number for at least one of
+them. Here a wrong number is not an inconvenience; it is someone calling a
+stranger in an emergency. So Päkpätät is a graph, not a prompt — three of its
+four safety layers are plain code the model cannot talk its way past, and the
+honest refusal is treated as the correct answer rather than a failure.
+
+### Private by design, offline by default
+
+Answers are written on the machine itself by a local model (Qwen 2.5), so
+**no question ever leaves the computer** — which matters when the question
+contains a case number, an address, or the fact that someone has been detained.
+There is no account, no telemetry, and no per-question cost.
+
+The internet is needed twice: once to install, and afterwards only when someone
+presses **Check for updates**. Between those, everything works with the wifi
+off — the archive, the search, and the answers.
+
+Organisations that want a frontier model instead can have one: paste an
+OpenAI, Anthropic or Google key into Settings and answers are written by that
+provider on the next question. The app states plainly, on screen, which mode it
+is in — because that is the one fact a case worker is most often asked by the
+person beside them.
+
+<img src="docs/screenshots/07-settings.png" alt="The Settings panel showing a green Private mode badge reading nothing leaves this computer, an answer-engine picker set to Local / offline (Ollama), and the model qwen2.5:3b-instruct" width="820">
+
+*Switching to a cloud provider replaces that green badge with an amber one
+naming the provider. The claim on the box always matches what the software is
+actually doing.*
 
 ## How it works
 
