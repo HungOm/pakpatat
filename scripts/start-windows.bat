@@ -36,7 +36,7 @@ echo         [O,O]   [O,O]
 echo         /^)__^)   /^)__^)
 echo     ----"--"-----"--"----
 echo.
-echo     Päkpätät  -  K'Cho for owl
+echo     Päkpätät  -  the one who is asked, and who answers
 echo     It answers what it knows. It says so when it doesn't.
 echo.
 echo     Independent tool. Not affiliated with UNHCR.

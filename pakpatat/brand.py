@@ -5,27 +5,27 @@ The brand, in one place.
 
 Every user-visible name, tagline, colour and disclaimer lives here so that the
 window title, the splash, the UI, both launchers and the docs cannot drift
-apart -- which they had: the app shipped a window titled "Shümthein", a rail
-reading "Shümthein", and a favicon that was a blue square reading "RM".
+apart -- which they had: the app once shipped a window and a rail still
+carrying a previous working title, and a favicon that was a blue square
+reading "RM".
 
 "RM" was Refugee Malaysia, UNHCR's retired site brand, in UNHCR's own blue
 (#0072BC). TERMS.md forbids that name and NOTICE.md forbids implying that
 affiliation, so the app was violating both of its own rules in the two places
-a user looks first. See BRAND.md.
+a user looks first.
 
 DISPLAY NAME AND IDENTIFIERS NOW AGREE
 --------------------------------------
 The display name is Päkpätät and the ASCII form is `pakpatat` -- the Python
 package, module paths, `PAKPATAT_*` environment variables, the launchd label
 and the repository directory all use it. That agreement is the whole point of
-the name: BRAND.md §2 rejected `Shümthein` partly because its ASCII form
-`shumthein` was a four-way collision in the dictionary, so brand and identifier
-could never be the same string without a footnote. `pakpatat` collides with
-nothing, so there is no footnote to keep in sync.
+the name: the previous one was rejected partly because its ASCII form was
+ambiguous, so brand and identifier could never be the same string without a
+footnote. `pakpatat` collides with nothing, so there is no footnote to keep in
+sync.
 
-The rename was done in one pass after pipeline/refresh.py landed (BRAND.md §5b);
-it is deliberately a clean break, with no `SHUMTHEIN_*` fallback left in the
-env-var lookups. An old .env therefore does not half-work -- it fails at the
+The rename was done in one pass after pipeline/refresh.py landed; it is
+deliberately a clean break, with no fallback left in the env-var lookups. An old .env therefore does not half-work -- it fails at the
 one place that reports it, pakpatat/preflight.py.
 """
 
@@ -35,13 +35,9 @@ NAME_ASCII = "Pakpatat"          # for consoles that cannot render a diaeresis
 SLUG = "pakpatat"                # package, module, env-var and repo identifier
 HANDLE = "@pakpatat"             # byline on shared images -- see postcard.py
 
-# K'Cho for "owl". NOT in K'Cho-English Dictionary v1.0 -- the corpora there are
-# Bible-derived and contain no bird vocabulary. The evidence is a T0 author
-# verdict by a native speaker, which is the PRIMARY tier in this project's own
-# methodology, not a weaker substitute for a corpus count. BRAND.md §2 records
-# the full status and the open dialect question.
+# The owl the mark draws, and the one the name refers to.
 GLOSS = "owl"
-GLOSS_LONG = "K'Cho for owl — the one who is asked, and who answers"
+GLOSS_LONG = "The one who is asked, and who answers"
 
 # The owl means wisdom: rich in knowledge, and calm about it. The second half of
 # that is knowing where the knowledge stops, which is exactly this tool's

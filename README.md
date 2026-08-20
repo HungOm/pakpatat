@@ -4,7 +4,7 @@
 
 **It answers what it knows. It says so when it doesn't.**
 
-K'Cho *`päkpätät`*: **owl** — the one who is asked, and who answers.
+*`päkpätät`* — the one who is asked, and who answers.
 
 Päkpätät answers questions from an archive of refugee-support guidance. It
 runs entirely on one laptop, with no internet and no API key, and it is built
@@ -693,13 +693,15 @@ one; never accept one pasted into a chat.
 
 ## Languages
 
+The interface is English and Burmese, and questions can be typed in either.
+
 Interface translation and free-text question support are **different
-problems**, and a language can have the first without the second. K'Cho is
-measured at 0.187 cross-lingual similarity on this embedding model (unrelated
-pairs score 0.138) — so free-text K'Cho retrieval does not work, and the
-in-app guide is the supported path instead. Do not promise a language without
-running the measurement. [i18n/README.md](i18n/README.md) has the method and
-the numbers.
+problems**, and a language can have the first without the second: the embedding
+model represents some languages well and others barely at all, and a language it
+does not represent retrieves at random no matter how good the translation is.
+**Do not promise a language without running the measurement first** —
+[i18n/README.md](i18n/README.md) has the method, the numbers, and what to do
+when a language fails it.
 
 <img src="docs/screenshots/03-guide.png" alt="The What can I ask panel, listing categories and questions in English with Burmese category names" width="820">
 
@@ -719,8 +721,7 @@ Two rules beyond the usual:
    not enough: one rephrasing scored higher while silently ceasing to retrieve
    the hotline it was meant to find. Check that the *fact* is in the window.
 
-Terminology is fixed in [TERMS.md](TERMS.md). Name and visual identity, and the
-K'Cho evidence behind both, are in [BRAND.md](BRAND.md).
+Terminology, the name and its written form are fixed in [TERMS.md](TERMS.md).
 
 **Credit and headers.** Every source file opens with two lines:
 

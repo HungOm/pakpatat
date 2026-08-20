@@ -2,41 +2,20 @@
 
 ## The name
 
-**Päkpätät** — K'Cho for **owl**. The one who is asked, and who answers.
+**Päkpätät** — the one who is asked, and who answers.
 
 Written **Päkpätät**. In identifiers where diacritics do not survive — package
 name, repository, CLI, module, environment variables — it is **`pakpatat`**.
-Unlike the name it replaced, that ASCII form needs no footnote: it collides
-with nothing in the dictionary, so the brand and the identifier are the same
-string everywhere.
-
-**Evidence status — read this before citing it.** `päkpätät` is *not* in
-K'Cho–English Dictionary v1.0: no `owl` entry in the reverse index, no matching
-headword, and zero occurrences in either released corpus. Both corpora are
-Bible-derived, and the same gap is already recorded for `hospital`, `police`,
-`arrest`, `phone`, `card` and `refugee` — everyday vocabulary a scriptural
-corpus does not contain. The evidence here is a **T0 author verdict by a native
-speaker**, which is the primary tier in this project's own methodology, not a
-weaker substitute for a corpus count. The form is **dialectal** ("in *some*
-K'Cho"), and per ruling D-007 a form attested in one lect is not automatically
-pan-dialect — that question is still open. See [BRAND.md](BRAND.md) §2.
 
 The two diaereses mark vowel *quality*, not tone. They are letters. Do not
 delete them, and do not set the name as `Pakpatat` anywhere a diaeresis will
 render.
-
-K'Cho is a Chin language of southern Chin State, Myanmar, spoken by many of the
-refugees this tool is built to serve. The name is theirs, not decoration.
 
 **One-line description:** *Offline assistant that answers refugee-support
 questions from UNHCR's published guidance, with every answer cited and every
 phone number checked. Not affiliated with UNHCR.*
 
 **Tagline:** *It answers what it knows. It says so when it doesn't.*
-
-The former name, **Shümthein** (`m'shüm thein`, "to guide and tell"), and the
-full argument for replacing it are kept in [BRAND.md](BRAND.md) §2 — the
-etymology was sound; the writing of it was not.
 
 ## Terms used throughout the code and docs
 
@@ -69,7 +48,7 @@ something in the code depends on it.
   assistant"* is a stack of nouns with no head: it reads as *made by UNHCR* or
   *for UNHCR* just as readily as the true reading. Attribution is not
   affiliation — say the answers come *from UNHCR's published guidance*, and put
-  the disclaimer in the same sentence. See [BRAND.md](BRAND.md) §4.
+  the disclaimer in the same sentence.
 - **"Database"** for the index. It is a flat vector array plus BM25, chosen
   deliberately over a database; calling it one invites the wrong changes.
 - **"Hallucination"** in user-facing text. Say what actually happened: *"the

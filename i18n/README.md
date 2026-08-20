@@ -23,12 +23,13 @@ the language. Measured on this corpus with
 | language | sentence ↔ its own English translation |
 |---|---|
 | Burmese | **0.949** — genuinely supported |
-| K'Cho | **0.187** (unrelated pairs score 0.138) — **not supported** |
+| a language the model was never trained on | **0.187**, against **0.138** for unrelated pairs — **not supported** |
 
-For K'Cho the correct translation ranked #1 for only 6 of 60 sentence pairs.
-The model was never trained on K'Cho, so a typed K'Cho question retrieves
-essentially at random. BM25 does not rescue it either: K'Cho words do not occur
-in an English corpus, so lexical coverage is ~0.
+That second row is a real measurement, not a hypothetical. For that language the
+correct translation ranked #1 for only 6 of 60 sentence pairs — barely above
+chance. BM25 does not rescue it either: words the English corpus never contains
+have ~0 lexical coverage. Any language outside the embedding model's training
+will look like this, and the number is the only way to find out which.
 
 **Never ship free-text support for a language without running this test.** A tool
 that appears to understand someone and then answers from the wrong page is worse
@@ -45,11 +46,12 @@ text>"` and submits exactly that string. Tapping the Burmese line runs a
 *Burmese* query. It works for Burmese because Burmese retrieval genuinely works
 (0.949 above), not because of any indirection.
 
-So for a language the embedding model does not represent — K'Cho — a guide line
-in that language would retrieve at random. **Adding K'Cho guide questions
-requires building the display/query split first.** The pieces are small (carry
-the English query beside the display text and submit that), but until they
-exist, translating guide questions into K'Cho makes the tool worse, not better.
+So for a language the embedding model does not represent, a guide line in that
+language would retrieve at random. **Adding guide questions in such a language
+requires building the display/query split first.** The pieces are small (carry a
+verified English query beside the display text and submit that), but until they
+exist, translating guide questions into an unrepresented language makes the tool
+worse, not better.
 
 Interface strings — buttons, labels, headings — are unaffected. They are never
 submitted as a query, so they can be translated into any language today.
@@ -77,13 +79,14 @@ Consequences worth knowing:
   only**, because a Burmese line there would come back in English every time.
   The Burmese *interface* stays on — that text is human-translated and never
   reaches a model.
-- Nothing writes K'Cho on any provider. The local model cannot; measured, its
-  output scored **2 of 12 tokens** against `kcho_eng_dictionary_v1.0` and
-  violated the orthography (doubled consonants, no diaereses). That is invented
-  text that looks like K'Cho — the exact failure this project exists to
-  prevent, and worst in a language with fewest speakers to catch it.
+- **No provider writes a low-resource language it was not trained on.** Asked
+  to try, the local model produced output matching **2 of 12 tokens** against a
+  reference dictionary and violating the orthography outright. That is invented
+  text wearing the shape of a real language — the exact failure this project
+  exists to prevent, and it is worst precisely where a language has fewest
+  speakers available to catch it.
 
-## Filling in `kcho_translation_worksheet.csv`
+## Filling in `translation_worksheet.csv`
 
 **133 rows**, cut directly from the `STR` and `GUIDE_EN` tables in
 `ui/index.html` and verified to round-trip against them — every key the app
@@ -107,26 +110,28 @@ Sort by `notes`. Each row is prefixed with its status:
 
 - **`SAFE` (79 rows)** — interface text and category headings. These are
   *never* submitted as a query, so they can be translated and shipped today.
-  This is the whole supported path for K'Cho right now, and it is worth doing:
-  it makes the app navigable in K'Cho.
+  For a language that fails the retrieval measurement, this is the whole
+  supported path — and it is worth doing, because it still makes the app
+  navigable in that language.
 - **`BLOCKED` (53 rows)** — every guide question and hero-card question.
   Translating them is fine; **enabling them is not**, because `ui/index.html`
-  submits the tapped text as the real query and K'Cho retrieval does not work
-  (0.187, see above). A K'Cho question here would retrieve at random. These
-  become usable only once the display/query split described earlier exists.
+  submits the tapped text as the real query. In a language that failed the
+  measurement above, a question here would retrieve at random. These become
+  usable only once the display/query split described earlier exists.
 - **`SKIP` (1 row)** — `modeCloud` is a code template, not a sentence. Ask
   before touching it.
 
 ### The columns
 
 - `english`, `burmese` — reference, already verified
-- `kcho_TO_FILL` — the column to complete
+- `translation_TO_FILL` — the column to complete
 - `notes` — status prefix plus the reason, as above
 
-Please have a native speaker do this. Machine translation into K'Cho is not
-available at usable quality — measured, the local model produced text matching
-**2 of 12 tokens** against the dictionary — and a plausible-looking wrong word
-in a safety context (detention, violence, medical cost) causes real harm.
+Please have a native speaker do this. For a low-resource language, machine
+translation is not available at usable quality — measured, the local model
+matched **2 of 12 tokens** against a reference dictionary — and a
+plausible-looking wrong word in a safety context (detention, violence, medical
+cost) causes real harm.
 
 ### Re-cutting it after the UI changes
 
@@ -136,13 +141,3 @@ than editing rows in place, and diff the result: a question that quietly
 vanished from the sheet is a question that comes back untranslated with nothing
 to show it was ever missing.
 
-## Missing domain vocabulary
-
-The K'Cho dictionary covers 33 of 39 everyday concepts tested, but not these,
-because its corpus is Bible-derived:
-
-> **hospital, police, arrest, phone, card, refugee**
-
-These are core to this domain. Adding them to the dictionary would be the single
-highest-value contribution to future free-text K'Cho support — and it benefits
-the dictionary project independently.

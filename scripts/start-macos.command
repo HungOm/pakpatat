@@ -26,7 +26,7 @@ cat <<'OWL'
     ----"--"-----"--"----
 OWL
 printf '\033[0m'
-echo "    Päkpätät  -  K'Cho for owl"
+echo "    Päkpätät  -  the one who is asked, and who answers"
 echo "    It answers what it knows. It says so when it doesn't."
 echo
 echo "    Independent tool. Not affiliated with UNHCR."
