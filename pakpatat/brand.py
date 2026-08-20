@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 The brand, in one place.
 

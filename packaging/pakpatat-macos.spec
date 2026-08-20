@@ -1,4 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 PyInstaller spec for the macOS build -> Pakpatat.app
 

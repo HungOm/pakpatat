@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 A deliberately slow, deliberately visible HTTP client for refreshing the archive.
 

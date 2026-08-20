@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 Retrieval benchmark for the archive assistant.
 

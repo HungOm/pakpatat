@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 Hybrid retrieval over the archive: dense (multilingual semantic) + sparse
 (BM25 keyword), score-fused.

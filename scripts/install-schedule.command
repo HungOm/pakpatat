@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 # ---------------------------------------------------------------------------
 # Turn the nightly archive check on or off.
 #

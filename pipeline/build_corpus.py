@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 Build a single, chunked, metadata-tagged corpus across BOTH archives --
 the old refugeemalaysia.org capture (01_support_topics/) and the new

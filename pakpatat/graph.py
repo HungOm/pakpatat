@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 The LangGraph pipeline:
 
@@ -90,14 +92,15 @@ addresses -- refugee learning centres, for example, are not listed individually 
 -- say so in one sentence and stop. Do NOT pad the answer with source text to \
 look like a list of places.
 10. WHERE TO GO ONLINE: when the answer tells someone to do something on a \
-website, portal or online form, say WHERE first -- name the page and give its \
-web address, copied EXACTLY from the sources: a link written in the source \
-text, or failing that the source's own "URL:" line. Then give the steps to \
-take on that page, in order: what to click, what to type, what to choose. \
-"Click on Create a new account" with no address sends someone off to search \
-for the page themselves. Never invent, shorten or tidy a link. If the sources \
-hold no link for the page, give the steps and say the archive does not hold \
-the page's address.
+website, portal or online form, name the page and give its web address, copied \
+EXACTLY from the sources, at the first step that needs it -- "Go to the My \
+Services portal: https://... [S1]" -- then the steps to take on that page, in \
+order: what to click, what to type, what to choose. "Click on Create a new \
+account" with no address sends someone off to search for the page themselves. \
+Write the address ONCE; do not repeat it under every step, and never copy the \
+source labels (Status, URL) into the answer as though they were content. Never \
+invent, shorten or tidy a link. If the sources hold no address for the page, \
+give the steps and say the archive does not hold the link.
 11. FORMATTING: use markdown. Use "###" for section headings, "-" for lists, \
 and a markdown table when comparing two or more options across the same fields \
 (prices, plans, locations). Put each clinic or office on its own line. Do not \
@@ -440,11 +443,7 @@ def node_generate(state: State) -> State:
         f"{system_prompt(mirror_language=not downgraded)}\n\n"
         f"=== SOURCES FROM THE ARCHIVE ===\n{retrieve.format_sources(results)}\n\n"
         f"=== QUESTION ===\n{state['question']}\n\n"
-        f"Answer using only the sources above. If the reader must do something "
-        f"on a web page, start with where to go -- the page's name and its "
-        f"exact address copied from the sources -- then the steps to take on "
-        f"that page. Cite a source tag for EVERY claim, [S1] style: an answer "
-        f"without [S#] citations cannot be verified and will be flagged."
+        f"Answer using only the sources above, citing [S#] for each claim."
     )
     model = _model()
     response = model.invoke(base)
@@ -689,6 +688,12 @@ def node_verify(state: State) -> State:
     answer = re.sub(r"^[ \t]*#{1,6}[ \t]*\[S\d+\][ \t]*$\n?", "", answer,
                     flags=re.M)
 
+    # Numbered headings arrive glued ("### 1Click on...") -- qwen2.5:3b drops
+    # the separator after the digit. Cosmetic, but it reads as a typo in every
+    # answer, so restore the "1. " form.
+    answer = re.sub(r"^(#{1,6}[ \t]*\d+)(?=[A-Za-z])", r"\1. ", answer,
+                    flags=re.M)
+
     # LINK CHECK (code, not prompt).
     #
     # Rule 10 asks for the page's address next to the steps, and the model
@@ -731,6 +736,36 @@ def node_verify(state: State) -> State:
             f"the source cards below come straight from the archive -- use "
             f"those."
         )
+
+    # WHERE-TO-GO INSURANCE (code, not prompt).
+    #
+    # Rule 10 asks the model to put the page's address at the step that needs
+    # it, and on a good run it does. On a bad run -- small models vary run to
+    # run -- the same steps arrive with no address at all, which sends the
+    # reader off to search for the page themselves. So when an actionable
+    # answer carries no link, the cited pages' own addresses are appended.
+    # They come from the archive record, not from the model, so they cannot
+    # be misspelled or spliced.
+    _ACTION_RE = re.compile(
+        r"\b(?:click|log ?in|sign ?in|regist\w*|portal|online form|"
+        r"appl(?:y|ication)|submit\w*|renew\w*|enrol\w*|book\w*|appointment|"
+        r"account|visit\w*|website)\b", re.I)
+    if not re.search(r"https?://", answer) and _ACTION_RE.search(answer):
+        links: list[str] = []
+        seen_urls: set[str] = set()
+        # Current pages first: when a cited chunk is from the retired site,
+        # the reader should still be handed the live page where one exists.
+        for s in sorted(sources, key=lambda s: not s["is_current"]):
+            u = (s.get("url") or "").strip()
+            if not u.startswith("http") or u in seen_urls:
+                continue
+            seen_urls.add(u)
+            note = "" if s["is_current"] else " (from the retired site)"
+            links.append(f"- [{s['title']}]({u}) [{s['tag']}]{note}")
+            if len(links) == 2:
+                break
+        if links:
+            answer += "\n\n**Where to go:**\n" + "\n".join(links)
 
     hay = re.sub(r"\s+", " ", rendered)
     lines = [ln.strip() for ln in answer.split("\n") if len(ln.strip()) >= 60]

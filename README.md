@@ -721,6 +721,23 @@ Two rules beyond the usual:
 Terminology is fixed in [TERMS.md](TERMS.md). Name and visual identity, and the
 K'Cho evidence behind both, are in [BRAND.md](BRAND.md).
 
+**Credit and headers.** Every source file opens with two lines:
+
+```python
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
+```
+
+Keep them if you fork or lift a file — several modules here (`scrape.py`,
+`factcheck.py`, `corpus.py`) are useful on their own, and a header is the only
+credit that travels with a file someone copies out of the tree. It names no
+individual contributor on purpose, so it never goes stale and nobody has to
+maintain a list: **git history is the record of who wrote what**, and it is
+better at it than a comment. Contributors keep their copyright and are covered
+by "and Päkpätät contributors" without editing 33 files.
+
+You are not required to add your name anywhere to contribute.
+
 ## Licence
 
 Code: [MIT](LICENSE).

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 Checks that every hard fact in an answer appears VERBATIM in what the model
 was shown.

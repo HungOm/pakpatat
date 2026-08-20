@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """Päkpätät -- cited answers for refugee case workers, offline.
 
 K'Cho `päkpätät`: owl -- the one who is asked, and who answers. Dialectal, on

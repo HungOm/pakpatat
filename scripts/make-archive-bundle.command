@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 # ---------------------------------------------------------------------------
 # Päkpätät -- package the un-crawlable half of the archive for another machine
 #

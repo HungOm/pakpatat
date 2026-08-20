@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 """
 MCP server exposing the refugee archive as tools for Claude Desktop, Claude
 Code, or any other MCP client.

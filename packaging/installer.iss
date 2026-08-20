@@ -1,3 +1,5 @@
+; SPDX-License-Identifier: MIT
+; Copyright (c) 2026 Hung Om and Päkpätät contributors
 ; Inno Setup script -- turns the PyInstaller folder into ONE downloadable .exe.
 ;
 ;   iscc packaging\installer.iss /DMyAppVersion=1.0.0

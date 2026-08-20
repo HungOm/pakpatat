@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Hung Om and Päkpätät contributors
 # ---------------------------------------------------------------------------
 # Päkpätät -- build a macOS .app / .dmg that is ready to use on arrival
 #

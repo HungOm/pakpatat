@@ -1,3 +1,5 @@
+REM SPDX-License-Identifier: MIT
+REM Copyright (c) 2026 Hung Om and Päkpätät contributors
 @echo off
 setlocal enabledelayedexpansion
 REM ---------------------------------------------------------------------------
