@@ -77,7 +77,7 @@ def main() -> None:
         slug=brand.SLUG,
         company="Independent community tool - not affiliated with UNHCR",
         description="Offline cited answers for refugee case workers",
-        copyright="MIT licensed. Ships no archive content - see NOTICE.md",
+        copyright="MIT licensed. Ships no archive content - see README.md",
     ), encoding="utf-8")
     print(f"wrote {out.relative_to(ROOT)} for version {VERSION}")
 

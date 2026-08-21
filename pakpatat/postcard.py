@@ -26,7 +26,7 @@ Two rules that must not be softened later:
      the "this service is currently unavailable" line, and the reader would have
      no way to know something was missing.
   2. NO UNHCR BRANDING. The mark and colours are this project's own. See
-     NOTICE.md -- an image is exactly where an implied affiliation does damage.
+     the README's notices -- an image is exactly where an implied affiliation does damage.
 
 Rendered server-side with Pillow rather than in the browser: the desktop window
 has no JS bridge to save a file, canvas text shaping for Burmese is unreliable
@@ -227,7 +227,7 @@ def _blocks(msg: dict, question: str, lang: str,
 
     WARNINGS ARE OFF BY DEFAULT -- AN EXPLICIT OPERATOR DECISION, NOT A BUG.
     -----------------------------------------------------------------------
-    This module's own docstring says nothing is silently dropped, and NOTICE.md
+    This module's own docstring says nothing is silently dropped, and the README
     treats the retired-source and unverified-fact notices as part of what makes
     a shared answer safe. The operator has asked for a clean card without them,
     which is theirs to decide; it is recorded here so nobody "fixes" it back by

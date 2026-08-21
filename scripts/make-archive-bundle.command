@@ -55,7 +55,7 @@
 # ------------------------------
 # The pages inside are UNHCR's copyrighted work. Handing them to another
 # machine in your own organisation is not the same as publishing them. Do not
-# put the result on a public link. Read NOTICE.md.
+# put the result on a public link. Read the README's Notices.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -144,7 +144,7 @@ echo "This bundle contains guidance published by UNHCR and its partners,"
 echo "plus material given to you directly. Sending it to another machine in"
 echo "your organisation is a handoff. Putting it on a public link is"
 echo "publishing, and that is UNHCR's decision to make, not yours."
-echo "Read NOTICE.md."
+echo "Read the README's Notices."
 echo "-----------------------------------------------------------"
 printf "Type 'bundle' to continue: "
 read -r reply

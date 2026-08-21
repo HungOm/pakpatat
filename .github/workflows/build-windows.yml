@@ -99,7 +99,7 @@ jobs:
             **One download, installs without an administrator password.**
 
             This installer contains the application only. It ships **no archive
-            content** — see NOTICE.md. Point it at your own archive, or ask
+            content** — see the README's notices. Point it at your own archive, or ask
             whoever maintains yours for the data folder.
 
             Offline answers additionally need [Ollama](https://ollama.com/download)

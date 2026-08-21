@@ -76,7 +76,7 @@ def check_corpus() -> dict:
     """The archive itself.
 
     Used to be the one gap no button could close: build_corpus.py reads source
-    pages the operator holds and this project does not distribute (NOTICE.md),
+    pages the operator holds and this project does not distribute (see the README's notices),
     so an installed copy either shipped with the archive or it did not. That is
     still true of the RETIRED site and any partner materials -- they live only
     in someone's existing copy, and no button can conjure them. But the LIVE

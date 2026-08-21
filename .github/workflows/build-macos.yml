@@ -92,7 +92,7 @@ jobs:
 
             Not code-signed: on first launch, right-click the app → Open → Open.
 
-            Contains the application only — **no archive content** (NOTICE.md).
+            Contains the application only — **no archive content** (see the README's notices).
             Offline answers also need [Ollama](https://ollama.com/download) and
             `ollama pull qwen2.5:3b-instruct`.
 

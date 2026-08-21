@@ -15,7 +15,7 @@ was not a developer at a terminal. This file is the command-line front door to
 the same code: it resolves the environment, calls corpus.build(), and prints.
 
 This reads an archive that the OPERATOR already holds locally. No source
-material ships with this repository (see NOTICE.md) -- point PAKPATAT_ARCHIVE
+material ships with this repository (see the README's notices) -- point PAKPATAT_ARCHIVE
 at your own copy:
 
     export PAKPATAT_ARCHIVE=~/path/to/archive
@@ -45,7 +45,7 @@ if not _env:
         "PAKPATAT_ARCHIVE is not set.\n"
         "Point it at your local copy of the source archive, e.g.\n"
         "    export PAKPATAT_ARCHIVE=~/Desktop/refugee_malaysia\n"
-        "This repository ships no archive content of its own -- see NOTICE.md."
+        "This repository ships no archive content of its own -- see the README."
     )
 
 ROOT = pathlib.Path(_env).expanduser().resolve()

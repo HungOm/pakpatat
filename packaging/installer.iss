@@ -20,7 +20,7 @@
 ;
 ;   The archive is not here
 ;     Unless the build was made with PAKPATAT_BUNDLE_ARCHIVE=1, the installed app
-;     has no content to search and says so on its own splash. See NOTICE.md.
+;     has no content to search and says so on its own splash. See the README's notices.
 
 #ifndef MyAppVersion
   #define MyAppVersion "0.0.0"
@@ -53,7 +53,6 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 LicenseFile=..\LICENSE
-InfoBeforeFile=..\NOTICE.md
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

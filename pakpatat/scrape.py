@@ -22,7 +22,7 @@ the traffic smaller and more honest rather than harder to attribute:
   - a User-Agent that says what this is and where to complain
   - a hard per-run request budget, so a bug in a loop cannot become a flood
 
-NOTICE.md commits this project to respecting robots.txt and to not hammering
+The README's notices commit this project to respecting robots.txt and to not hammering
 UNHCR's servers. This module is where that commitment is actually enforced,
 rather than being a line in a document.
 
@@ -43,7 +43,7 @@ import urllib.robotparser
 # log should be able to tell what it is and how to make it stop.
 USER_AGENT = (
     "Pakpatat/1.0 (offline archive for a refugee community organisation; "
-    "respects robots.txt; contact the operator via the CBO listed in NOTICE.md)"
+    "respects robots.txt; +https://github.com/HungOm/pakpatat)"
 )
 
 # Seconds between requests. The site is a WordPress instance serving refugees;

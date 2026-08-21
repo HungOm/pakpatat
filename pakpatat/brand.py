@@ -10,8 +10,8 @@ carrying a previous working title, and a favicon that was a blue square
 reading "RM".
 
 "RM" was Refugee Malaysia, UNHCR's retired site brand, in UNHCR's own blue
-(#0072BC). TERMS.md forbids that name and NOTICE.md forbids implying that
-affiliation, so the app was violating both of its own rules in the two places
+(#0072BC). The README's notices forbid that name and that implied
+affiliation, so the app was violating its own rules in the two places
 a user looks first.
 
 DISPLAY NAME AND IDENTIFIERS NOW AGREE
@@ -56,7 +56,7 @@ DESCRIPTION = (
 # "UNHCR-friendly" means crediting them clearly and never borrowing their
 # identity. Attribution is required; affiliation is prohibited. These two
 # strings must travel together -- the first without the second is the exact
-# claim NOTICE.md retracts.
+# claim the README's notices retract.
 SOURCE_CREDIT = "Guidance published by UNHCR and its partners."
 NOT_AFFILIATED = (
     "This is an independent tool. It is not affiliated with, endorsed by, or "
@@ -71,7 +71,7 @@ TAKEDOWN = (
 #
 # Indigo primary, gold secondary. Two constraints had to be satisfied at once.
 #
-# 1. NOT UNHCR's blue. NOTICE.md forbids using their brand colour as if this
+# 1. NOT UNHCR's blue. The README's notices forbid using their brand colour as if this
 #    were official, and this UI used to set --accent to #0072BC with the
 #    comment "UNHCR blue". Measured hue distance from the references:
 #

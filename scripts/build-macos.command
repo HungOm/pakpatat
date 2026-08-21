@@ -60,7 +60,7 @@ echo "Version $VERSION"
 #
 # Asked out loud, every time, because it is a rights decision and not a build
 # setting. The source pages are UNHCR's; handing them to someone else is a
-# choice only the operator can make (NOTICE.md). Answering "no" still produces
+# choice only the operator can make (see the README's notices). Answering "no" still produces
 # a working app -- it just arrives empty, and its first screen says so.
 CORPUS="$(python -c 'from pakpatat import config; print(config.CORPUS)')"
 BUNDLE_ARCHIVE=0
@@ -75,7 +75,7 @@ if [ -f "$CORPUS" ]; then
   echo
   echo "The archive is guidance published by UNHCR and its partners."
   echo "Distributing it is UNHCR's decision to make, not this tool's."
-  echo "Read NOTICE.md before answering yes."
+  echo "Read the README's Notices before answering yes."
   echo "-----------------------------------------------------------"
   printf "Type 'include' to bundle the archive, anything else to skip: "
   read -r reply

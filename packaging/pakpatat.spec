@@ -17,8 +17,8 @@ WHAT GOES IN, AND WHAT DELIBERATELY DOES NOT
 IN   ui/ (the interface), ui/brand/ (mark, icons), the package itself.
 IN   the embedding model, IF it is already cached on the build machine -- see
      the block below. This is what makes a fresh install able to search offline.
-OUT  data/ -- the archive. It is (c) UNHCR and NOTICE.md commits this project
-     to not redistributing it. Opt in with PAKPATAT_BUNDLE_ARCHIVE=1 only if
+OUT  data/ -- the archive. It is (c) UNHCR and the README's notices commit
+     this project to not redistributing it. Opt in with PAKPATAT_BUNDLE_ARCHIVE=1 only if
      you have the right to hand that content to whoever gets the installer.
 OUT  mcp_server.py and the refresh pipeline. They are operator tools, not part
      of a case worker's desktop app, and each drags in dependencies.
@@ -38,7 +38,7 @@ sys.path.insert(0, str(ROOT))
 datas = [
     (str(ROOT / "ui" / "index.html"), "ui"),
     (str(ROOT / "ui" / "brand"), "ui/brand"),
-    (str(ROOT / "NOTICE.md"), "."),
+    (str(ROOT / "README.md"), "."),
     (str(ROOT / "LICENSE"), "."),
 ]
 binaries = []
@@ -98,7 +98,7 @@ try:
 except Exception as exc:                                      # noqa: BLE001
     print(f"[spec] WARNING: embedding-model check failed: {exc}")
 
-# The archive. OFF unless explicitly requested -- see NOTICE.md.
+# The archive. OFF unless explicitly requested -- see the README's notices.
 if os.getenv("PAKPATAT_BUNDLE_ARCHIVE") == "1":
     data_dir = ROOT / "data"
     if data_dir.exists():
@@ -108,7 +108,7 @@ if os.getenv("PAKPATAT_BUNDLE_ARCHIVE") == "1":
         if (data_dir / "index").exists():
             datas.append((str(data_dir / "index"), "archive/index"))
         print("[spec] *** BUNDLING ARCHIVE CONTENT -- confirm you have the "
-              "right to distribute it (NOTICE.md) ***")
+              "right to distribute it (see README notices) ***")
 
 version_file = ROOT / "packaging" / "version_info.txt"
 icon_file = ROOT / "ui" / "brand" / "icon.ico"

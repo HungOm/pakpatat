@@ -11,8 +11,8 @@
 
 # ---------------------------------------------------------------------------
 # ARCHIVE CONTENT -- deliberately not distributed.
-# The source material this assistant reads is UNHCR's copyrighted work (see
-# NOTICE.md). This repository ships the code that builds and searches an
+# The source material this assistant reads is UNHCR's copyrighted work (see the
+# README's Notices section). This repository ships the code that builds and searches an
 # archive, never the archive itself. Everything under data/ is generated on
 # the user's own machine from their own copy of the source material.
 # ---------------------------------------------------------------------------

@@ -1,206 +1,50 @@
 # Päkpätät
 
-<img src="ui/brand/lockup.svg" alt="Päkpätät" width="420">
+*It answers what it knows. It says so when it doesn't.*
 
-**It answers what it knows. It says so when it doesn't.**
+An offline assistant that answers refugee-support questions from UNHCR's
+published guidance — every answer cited, and every phone number, fee and date
+checked against the source text in code before it is shown. **Independent
+tool, not affiliated with UNHCR.** The repository ships **code only, no
+archive content** — see [Notices](#notices).
 
-*`päkpätät`* — the one who is asked, and who answers.
-
-Päkpätät answers questions from an archive of refugee-support guidance. It
-runs entirely on one laptop, with no internet and no API key, and it is built
-around a single rule: **it would rather say "that is not in the archive" than
-guess.**
-
-Every answer cites the pages it came from. Every citation is checked in code.
-Every phone number, fee and date is checked against the source text before the
-answer is shown.
-
-> This project is **not affiliated with UNHCR** and ships **no archive content**.
-> See [NOTICE.md](NOTICE.md).
+Written **Päkpätät**; in identifiers where diacritics do not survive —
+package, CLI, environment variables — it is `pakpatat`. The two diaereses are
+letters: do not drop them anywhere they will render.
 
 <img src="docs/screenshots/01-home.png" alt="The Päkpätät window: a sidebar with recent questions, four topic cards, and a question box" width="820">
 
-Asked about the My Services portal, it answers from the archive, step by step —
-offline, on the local model:
+Ask in English or Burmese and get a written answer with inline citations,
+composed on the machine itself by a local model. No question leaves the
+computer unless you deliberately switch to a cloud provider in Settings, and
+the app states on screen which mode it is in.
 
-<img src="docs/screenshots/04-ask-myservices.png" alt="Asked how to create a My Services account, the assistant answers in numbered steps from the archived guidance — the privacy notice, the email verification code, a Malaysian phone number that is not WhatsApp-only — each step carrying its source citation" width="820">
+<img src="docs/screenshots/04-ask-myservices.png" alt="Asked how to create a My Services account, the assistant answers in numbered steps from the archived guidance, each step carrying its source citation" width="820">
 
-Asked what REMEDI costs, the answer carries the exact premiums — and says the
-child rate is a promotion, because the source says so:
+<img src="docs/screenshots/06-sources.png" alt="The end of an answer: a Where to go list linking the live UNHCR pages, followed by source cards badged current" width="820">
 
-<img src="docs/screenshots/05-ask-remedi.png" alt="Asked what REMEDI is and how much it costs, the assistant explains the refugee medical insurance and gives the premiums: RM 150.00 for a child during the promotion, RM 183.60 after it closes, RM 183.60 per year for an adult" width="820">
+## What it does
 
-And every answer says where to go. The steps end in a **Where to go** list —
-the live help.unhcr.org pages themselves, linked in the answer and again on
-the source cards below it, every one badged current:
-
-<img src="docs/screenshots/06-sources.png" alt="The end of the My Services answer: a Where to go list linking the live Not Registered Start Your Application page and the My Services Portal page, each with its citation tag, followed by source cards badged current" width="820">
-
-## What it knows
-
-A reference operator's archive currently indexes:
-
-| | |
-|---|---|
-| **616** searchable passages | across **86** documents and **80** topics |
-| **73,409** words of guidance | held offline, on one laptop |
-| **333** passages | from the live **help.unhcr.org/malaysia** site |
-| **262** passages | from the retired **refugeemalaysia.org** capture — guidance taken offline on 2026-07-14, including topics the new site never carried |
-| **21** passages | from partner briefings given directly to the operating organisation |
-| **49** suggested questions | in **11** categories, English and Burmese — every one verified against the retriever before it was added |
-
-These counts describe one organisation's archive. The software ships with none
-of it — see [What is in this repository](#what-is-in-this-repository--and-what-is-not).
-
-## Credits and sources
-
-The guidance this tool retrieves is **not its own work**. It belongs to the
-organisations that wrote it:
-
-- **UNHCR Malaysia** — [help.unhcr.org/malaysia](https://help.unhcr.org/malaysia),
-  the current official source of refugee guidance in Malaysia, and the page
-  every answer links back to for verification. Text and guidance © UNHCR.
-- **refugeemalaysia.org** — UNHCR Malaysia's previous site, retired on
-  **14 July 2026**. Much of what it held was never migrated. It is preserved
-  here, clearly labelled as retired, because the information did not stop being
-  needed when the website stopped being served.
-- **Allianz Malaysia**, with UNHCR, for the REMEDI refugee medical insurance
-  programme and the partner briefings that keep its terms current.
-- The **community-based organisations** and community leaders who attend those
-  briefings and carry the guidance to the people who need it.
-
-Answers cite their source and link back to UNHCR wherever a live page exists.
-Nothing here is presented as UNHCR's own service, and no UNHCR branding is used.
-Where this archive and the live site disagree, the app says so rather than
-choosing silently.
-
-**Software:** MIT-licensed open source, built by **Hung Om** for the community
-workers of one community-based organisation, and published in case it is useful
-to anyone in the same position. The code is free to fork, run and change; the
-archive content is not covered by that licence and is not distributed. No
-infringement is intended and none is needed — every answer cites UNHCR and
-links back to it. See [NOTICE.md](NOTICE.md), which also carries a standing
-commitment to remove anything a rights holder objects to.
-
----
-
-## Why it exists
-
-**The information already exists.** UNHCR Malaysia and its partners publish it
-carefully and in public. Reaching it is the problem: it is spread across
-hundreds of pages, some of it retired along with the website that held it, and
-all of it written for someone with a browser, a data plan, and the patience to
-search in a second language.
-
-So the searching falls to the people least equipped to do it — a mother working
-out where her child can go to school, a brother trying to find who to call
-after an arrest — and to the community organisations answering for them, forty
-questions a day, from memory.
-
-**Päkpätät puts the whole archive on one laptop and answers plain questions
-about it.** Ask in English or Burmese and get back a written answer, not a link
-to go and read: the eligibility rules in order, the premium with its exact
-figures, the hotline with its digits intact — composed into clear prose and
-ending in the pages it came from. It serves a case worker and the person
-sitting across from them equally, because both are asking the same question.
-
-**And it says when it doesn't know.** A general-purpose chatbot answers all
-forty questions confidently and invents a hotline number for at least one of
-them. Here a wrong number is not an inconvenience; it is someone calling a
-stranger in an emergency. So Päkpätät is a graph, not a prompt — three of its
-four safety layers are plain code the model cannot talk its way past, and the
-honest refusal is treated as the correct answer rather than a failure.
-
-### Private by design, offline by default
-
-Answers are written on the machine itself by a local model (Qwen 2.5), so
-**no question ever leaves the computer** — which matters when the question
-contains a case number, an address, or the fact that someone has been detained.
-There is no account, no telemetry, and no per-question cost.
-
-The internet is needed twice: once to install, and afterwards only when someone
-presses **Check for updates**. Between those, everything works with the wifi
-off — the archive, the search, and the answers.
-
-Organisations that want a frontier model instead can have one: paste an
-OpenAI, Anthropic or Google key into Settings and answers are written by that
-provider on the next question. The app states plainly, on screen, which mode it
-is in — because that is the one fact a case worker is most often asked by the
-person beside them.
-
-<img src="docs/screenshots/07-settings.png" alt="The Settings panel showing a green Private mode badge reading nothing leaves this computer, an answer-engine picker set to Local / offline (Ollama), and the model qwen2.5:3b-instruct" width="820">
-
-*Switching to a cloud provider replaces that green badge with an amber one
-naming the provider. The claim on the box always matches what the software is
-actually doing.*
-
-## What it can do
-
-**Asking**
-
-- **Plain questions, English or Burmese** — the archive is searched in the
-  language you type, and every suggested question in the built-in guide was run
-  through the retriever before being listed.
-- **Follow-ups** — "how much for a child?" after a REMEDI question is rewritten
-  into a standalone search query, while the model still answers the words you
-  actually typed.
-- **Filter by currency** — all sources, latest guidance only, or earlier
-  records only.
-- **Honest refusal** — below the relevance gate the model is never called, and
+- **Plain questions, English or Burmese**, with follow-ups rewritten into
+  standalone search queries.
+- **Honest refusal** — below the relevance gate the model is never called;
   "that is not in the archive" is returned instead of a guess.
-- **Weak-match warnings** — a thin best source is flagged to the reader rather
-  than presented at full confidence.
-- **Directory lookups** — the NGO clinic directory is searchable by town, name
-  or service (*"clinic in Klang"*, *"Tzu Chi clinic opening hours"*, *"which
-  clinics offer vaccination for children"* — each pulls 5–7 directory entries
-  into the answer), returning the address, phone, opening hours and services.
-  It is held here because the live site dropped it: 22 clinics that exist in no
-  other published copy. There is no map or distance sorting — matching is on the
-  place names written in the addresses.
-
-**Trusting the answer**
-
-- **Inline citations** — `[S1]`, `[S2]` against the pages each claim came from,
-  each verified in code and stripped if invented.
+- **Inline `[S#]` citations**, each verified in code; invented ones are
+  stripped and the answer is flagged.
 - **Fact verification** — every phone number, email, fee and date must appear
-  verbatim in the sources, Burmese numerals included, or it is flagged as
-  unverified above the answer.
-- **Currency labelling** — sources are marked *current*, *earlier* or
-  *superseded*, so a retired page is never quoted as though it were live.
-- **Links back to UNHCR** — every answer ends in the pages it was built from.
-
-**Sharing**
-
-- **Save an answer as an image** — a branded card for WhatsApp or Telegram,
-  carrying the answer, its warnings and its sources; long answers paginate into
-  a numbered thread. Renders Burmese correctly or refuses rather than producing
-  broken glyphs.
-
-**Keeping it current**
-
-- **Get the archive** — crawls `help.unhcr.org/malaysia` from a button, obeying
-  `robots.txt` with rate limiting and a request budget.
-- **Check → review → apply** — updates are fetched and diffed into a staging
-  copy, and any changed phone number, fee or email is reported *before* you
-  apply it. Nothing the app answers from changes until you press Apply.
-- **Rollback copy** kept from the previous archive on every update.
-- **Archive bundles** — carry the un-crawlable half (a retired site, partner
-  materials) to another machine over a private link, checksum-verified.
-- **Topic coverage** — see which topics are thin before someone asks about them.
-- **Optional nightly check** — off unless you install it.
-
-**Running it**
-
-- **Fully offline after install** — retrieval, index and answers all local.
-- **Native desktop app** for Windows, macOS and Linux — no Electron, no Node.
-- **Self-repairing first run** — the splash reports the five things it needs and
-  offers a button for each one it can fix itself.
-- **Provider switching** — local Qwen by default; OpenAI, Anthropic or Google
-  with a key pasted into Settings.
-- **MCP server** — `search_archive`, `ask_archive` and `archive_stats` for use
-  from Claude Desktop or Claude Code.
-- **Regression-gated retrieval** — a gold set of real questions paired with the
-  exact fact each must surface, run with one command.
+  verbatim in the sources, Burmese numerals included, or it is flagged.
+- **Currency labels** — sources marked *current*, *earlier* or *superseded*,
+  so a retired page is never quoted as though it were live.
+- **Directory lookups** — the NGO clinic directory by town, name or service.
+- **Save an answer as an image** — a card for WhatsApp or Telegram carrying
+  the answer, its warnings and its sources.
+- **Self-updating archive** — crawl from a button, review any changed phone
+  number, fee or email, then apply; nothing changes until a human presses
+  Apply, and a rollback copy is kept.
+- **Fully offline after install** — native window on Windows, macOS and
+  Linux; no Electron, no telemetry, no account.
+- **MCP server** — `search_archive`, `ask_archive` and `archive_stats` for
+  use from an AI client.
 
 ## How it works
 
@@ -209,505 +53,105 @@ retrieve ──▶ guard ──┬──▶ generate ──▶ verify ──▶ 
                      └──▶ refuse
 ```
 
-1. **Refusal gate** (code, before generation) — if nothing retrieved is
-   relevant enough, the model is never called. A model that is never asked
-   cannot invent an answer.
-2. **Grounding** (prompt) — the model sees only retrieved archive text, and is
-   told to answer solely from it and cite `[S1]`, `[S2]` for every claim.
-3. **Citation verification** (code, after generation) — every `[S#]` is checked
-   against what was actually retrieved. Invented citations are stripped and the
-   answer is flagged.
-4. **Fact verification** (code, after generation) — every phone number, email,
-   fee and date in the answer must appear verbatim in the sources. A correctly
-   cited hotline with one digit changed is the most dangerous output this
-   system can produce, and this is the only layer that catches it.
-
-Retrieval is hybrid and fully offline: a multilingual ONNX embedding model for
-meaning, BM25 for exact tokens (hotline numbers, "REMEDI", clinic names),
-combined with Reciprocal Rank Fusion.
-
-## Measured behaviour
-
-Retrieval is held to a gold set of real questions paired with the exact fact
-each must surface — because if the fact never reaches the model, no amount of
-prompting saves the answer.
-
-| | |
-|---|---|
-| recall@8 on the gold set | **90%** (9/10) |
-| prompt size | mean 2,951 tokens, max 4,588 |
-| retrieval latency | ~11 ms warm (dense 0.2 ms, BM25 0.8 ms) |
-| answer latency | 5–11 s on an Apple M1, local 3B model |
+Three of the four safety layers are plain code the model cannot talk its way
+past: the refusal gate (below `MIN_SCORE` the model is never called), citation
+verification (every `[S#]` checked against what was actually retrieved), and
+fact verification (numbers, emails, fees and dates must match the sources
+verbatim). The fourth is grounding: the model sees only retrieved archive
+text. Retrieval is hybrid and fully offline — a multilingual ONNX embedding
+model plus BM25, fused by reciprocal rank — and is held to a gold set of real
+questions paired with the exact fact each must surface:
 
 ```bash
-python eval/eval_retrieval.py                          # run the gold set
-python eval/eval_retrieval.py --save eval/baseline.json
+python eval/eval_retrieval.py                                # run the gold set
 python eval/eval_retrieval.py --compare eval/baseline.json   # exits 1 on regression
 ```
 
-**Run this before and after any change to chunking, embeddings, fusion or
-`TOP_K`.** It has already caught a change that looked like a clear improvement
-— smaller prompts, better semantic ranking — but silently dropped recall from
-90% to 80%.
-
-One gold case is knowingly failing: a Burmese question for the registration
-hotline retrieves the right *topic* pages but not the page holding the number.
-It is left visible rather than quietly removed. See the notes in
-`pakpatat/retrieve.py`.
-
----
-
-## What is in this repository — and what is not
-
-This matters before you clone, fork or publish anything built on it.
-
-**Ships:** the retrieval and answering pipeline, the corpus builder, the
-refresh pipeline, the evaluation harness, the desktop app, and the MCP server.
-Code only. **MIT licensed.**
-
-**The repository itself never touches UNHCR.** Cloning and building — including
-the release workflows — fetch nothing from `help.unhcr.org`; the only download
-in a build is the embedding model.
-
-An *installed* copy can fetch, and only when someone asks it to: the Knowledge
-base panel crawls the site from a button, politely and rate-limited
-([NOTICE.md](NOTICE.md) lists what is enforced and every route that can start
-one). There is no fetch on launch and no background check. That is how a fresh
-install gets something to search — it is not the same thing as this repository
-carrying UNHCR's content, and it does not make redistributing what you fetched
-your decision to make.
-
-**Deliberately absent, and git-ignored:**
-
-| | why |
-|---|---|
-| `data/` — corpus, index, manifests, refresh state | The source material is **© UNHCR**. Publishing it is UNHCR's decision, not ours. [NOTICE.md](NOTICE.md) |
-| `.env` — API keys | Written by the in-app Settings panel, `chmod 600`, never committed |
-| Any UNHCR page, PDF, deck, poster or photograph | Same as above |
-| Any personal data | The corpus is built from published organisational contact details only. Do not extend it with case files, client records or registration numbers — nothing here is designed or audited for that, and the desktop app stores conversation history in plain `localStorage` |
-
-The `.gitignore` enforces the first two before anything else in the file, and
-the git history contains no `.env`, no `*.jsonl` and no archive content.
-
-**If you fork this, you are forking an empty shelf** — one that knows how to
-fill itself from `help.unhcr.org`, and nothing more. You still supply your own
-archive for anything beyond the live site. Read [NOTICE.md](NOTICE.md) before
-pointing it at someone else's site, keep the rate limiting and `robots.txt`
-handling in `pakpatat/scrape.py` intact if you do, and do not reintroduce
-UNHCR's name, logo or brand blue as if this were an official service — an
-earlier working title did exactly that and was dropped for it.
-
----
+Run that before and after any change to chunking, embeddings, fusion or
+`TOP_K` — it has already caught a change that looked like a clear improvement
+but silently dropped recall from 90% to 80%.
 
 ## Install
 
-### Windows — one download
+**Windows / macOS, one download.** Get the installer or `.dmg` from
+[Releases](../../releases). Per-user install, no administrator password; the
+macOS app is unsigned, so right-click → **Open**, once. Neither download
+contains archive content. Offline answers need
+[Ollama](https://ollama.com/download) plus `ollama pull qwen2.5:3b-instruct`
+(~2 GB) — the first-run screen checks what is missing and offers a button for
+everything it can fix itself.
 
-Download **`Pakpatat-Setup-<version>.exe`** from the
-[Releases](../../releases) page and run it.
-
-- **No administrator password.** It installs per-user into
-  `%LOCALAPPDATA%\Programs\Pakpatat`, because the people who need this are often
-  on a managed laptop they are not admin on.
-- No Python, no terminal, no virtualenv. Start Menu shortcut, optional desktop
-  icon, and a normal entry in Add/Remove Programs.
-- Your archive, index and settings live in `%LOCALAPPDATA%\Pakpatat` — **not**
-  inside the program folder. Uninstalling leaves them alone, so reinstalling or
-  upgrading never destroys an archive that may exist nowhere else.
-
-Two things the installer cannot include, and why:
-
-| | |
-|---|---|
-| **The archive** | It is © UNHCR and this project does not redistribute it ([NOTICE.md](NOTICE.md)). A fresh install has nothing to search and says so on its own splash screen. Ask whoever maintains your archive for the data folder, or build one — see below. |
-| **The answering model** | Offline answers need [Ollama](https://ollama.com/download) plus one `ollama pull qwen2.5:3b-instruct` (~2 GB). Searching the archive works without it. |
-
-The **embedding model** (~220 MB) *is* bundled when the build machine has it
-cached, so search works with the network off from the first launch.
-
-If the app opens in your browser rather than its own window, Windows is missing
-the Edge WebView2 runtime — the installer warns about this. Everything still
-works; install "Edge WebView2 Runtime" from Microsoft for the app window.
-
-### macOS — one download
-
-Download **`Pakpatat-<version>-macOS-arm64.dmg`** from the
-[Releases](../../releases) page, open it, and drag Pakpatat to Applications.
-
-- **Apple Silicon only** (see System requirements for why). Intel Macs run from
-  a checkout.
-- **Not code-signed or notarised.** macOS will refuse it on first launch with
-  "cannot be opened because the developer cannot be verified". Right-click the
-  app → **Open** → **Open**, once. Signing needs a paid Apple Developer account;
-  until this project has one, that right-click is the honest instruction rather
-  than a workaround pretending to be a feature.
-- Your archive and settings live in `~/Library/Application Support/Pakpatat`,
-  not inside the app, so replacing the app never touches them.
-
-Same two caveats as Windows: the published `.dmg` includes no archive content,
-and offline answers need [Ollama](https://ollama.com/download) plus the
-answering model.
-
-You do not have to run either of those by hand. The app's first screen checks
-the five things it needs and offers a button for the ones it can do itself —
-building the search index, and downloading the answering model through Ollama
-with a progress bar. The archive is the one gap no button can close: it is not
-in the download, so ask whoever gave you the app for a copy that includes it
-(the section below is how they make one).
-
-### macOS and Linux — from a checkout
-
-Install [Python 3.11+](https://www.python.org/downloads/) and
-[Ollama](https://ollama.com/download), then:
-
-| | |
-|---|---|
-| **macOS** | double-click `scripts/start-macos.command` |
-| **Windows** | double-click `scripts/start-windows.bat` |
-
-The launcher creates the virtualenv, installs dependencies, builds the search
-index, writes `.env` from `.env.example`, starts the Ollama server, offers to
-download the model on first run, and opens the app. Later launches skip
-straight to opening it.
-
-### Building a ready-to-use macOS app yourself
-
-On the Mac that holds the archive:
+**From a checkout.** Install Python 3.11+ and Ollama, then double-click
+`scripts/start-macos.command` or `scripts/start-windows.bat` — or by hand:
 
 ```bash
-scripts/build-macos.command        # or double-click it in Finder
-```
-
-It bundles the embedding model, asks whether to include the archive, builds the
-`.app` and `.dmg`, and then runs the frozen app's own preflight against a
-throwaway data folder — so you find out *before* shipping whether a fresh
-install opens green or opens with red rows. The archive question is asked out
-loud every time on purpose: it is a rights decision, not a build flag. Read
-[NOTICE.md](NOTICE.md) before answering yes.
-
-What a bundled build still cannot carry is the answering model (~2GB, and it
-lives inside Ollama). The recipient gets a button for it on first launch.
-
-The equivalent by hand, if you want the steps rather than the script:
-
-```bash
-python build_index.py                                   # caches the 220MB model
-PAKPATAT_BUNDLE_ARCHIVE=1 pyinstaller packaging/pakpatat-macos.spec --noconfirm
-./dist/Pakpatat.app/Contents/MacOS/Pakpatat --selftest   # finds its own parts?
-PAKPATAT_DATA=/tmp/fresh ./dist/Pakpatat.app/Contents/MacOS/Pakpatat --preflight
-```
-
-### Building the Windows installer yourself
-
-**PyInstaller does not cross-compile.** A Windows `.exe` can only be built on
-Windows, so this cannot be produced from a Mac or Linux checkout. Two options:
-
-**Tag a release** and let CI do it — this is the intended path:
-
-```bash
-# bump pakpatat/__init__.py __version__ first; the tag must match it
-git tag v1.0.0 && git push origin v1.0.0
-```
-
-`.github/workflows/build-windows.yml` builds on a Windows runner, runs
-`Pakpatat.exe --selftest` to prove the frozen app can find its own UI and
-providers, and attaches the installer to the release. Run it from the Actions
-tab instead to get a downloadable artifact without publishing.
-
-**Or build on a Windows machine:**
-
-```powershell
-pip install -r requirements.txt pyinstaller
-python packaging\version_info.py          # version resource from __version__
-pyinstaller packaging\pakpatat.spec --noconfirm
-dist\Pakpatat\Pakpatat.exe --selftest     # must PASS before shipping
-& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" packaging\installer.iss /DMyAppVersion=1.0.0
-# -> dist\Pakpatat-Setup-1.0.0.exe
-```
-
-**Versioning.** `pakpatat/__init__.py`'s `__version__` is the single source.
-`packaging/version_info.py` generates the Windows resource from it, the
-installer filename and Add/Remove Programs entry take it as a define, and CI
-fails the build if the git tag disagrees. The installer's `AppId` GUID is fixed
-so each version *replaces* the last rather than stacking up duplicate entries —
-do not change it between releases.
-
-**Bundling your own archive into the installer** — off by default:
-
-```powershell
-$env:PAKPATAT_BUNDLE_ARCHIVE = "1"; pyinstaller packaging\pakpatat.spec --noconfirm
-```
-
-This makes a genuinely one-download, ready-to-search installer, and the app
-copies the archive into the user's profile on first run. **Only do this if you
-hold the right to distribute that content to whoever receives the installer.**
-Read [NOTICE.md](NOTICE.md) first.
-
-### The manual path
-
-```bash
-git clone <your-fork> pakpatat && cd pakpatat
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ollama pull qwen2.5:3b-instruct
+python app.py            # desktop window
+python mcp_server.py     # MCP server
 ```
 
-`requirements.txt` installs every model provider so the Settings panel can
-switch between them without a reinstall. Retrieval itself is ONNX — **no
-PyTorch**.
-
-The first run downloads the embedding model (~220 MB). After that, nothing
-here needs the internet.
+Rough requirements: 8 GB RAM and 3 GB free disk for offline use (4 GB RAM
+with a cloud provider); macOS 11+, Windows 10+, or Linux from a checkout. To
+build the installers yourself see `packaging/` and `.github/workflows/` —
+pushing a tag `v<version>` matching `pakpatat/__init__.py` cuts a release in
+CI.
 
 ## Build your archive
 
-Päkpätät ships no content. Point it at an archive you hold:
+The repository ships no content and fetches nothing during clone or build.
+Point it at an archive you hold:
 
 ```bash
 export PAKPATAT_ARCHIVE=~/path/to/your/archive
-python pipeline/build_corpus.py     # archive  -> data/corpus.jsonl
-python build_index.py               # corpus   -> data/index/
-```
-
-Expected layout under `PAKPATAT_ARCHIVE` (each overridable by env var):
-
-```
-01_support_topics/     one directory per page, each with index.md
-04_help_unhcr_2026/    same, plus _index.json listing the records
-07_partner_materials/  optional — material given to you directly, plus _index.json
+python pipeline/build_corpus.py     # archive -> data/corpus.jsonl
+python build_index.py               # corpus  -> data/index/
 ```
 
 Any archive of markdown pages works — the pipeline is not specific to one
-source. See [NOTICE.md](NOTICE.md) before pointing it at someone else's site.
+source.
 
----
+An installed copy can also fetch the live site for itself: the **Knowledge
+base** panel crawls `help.unhcr.org` from a button — politely, enforced in
+code (`pakpatat/scrape.py`): robots.txt obeyed and failing closed, a rate
+limit with jitter, conditional requests, backoff honouring `Retry-After`, and
+a hard per-run request budget. Updates go through check → review → apply,
+with any changed phone number, fee or email reported before a human applies
+them. `pipeline/refresh.py` runs the same steps from a terminal, and
+`scripts/install-schedule.command` adds an opt-in nightly check that stages
+but never publishes.
 
-## System requirements
-
-Measured on the reference machine (Apple M1, 16 GB, macOS 14.7.1, arm64) unless
-marked otherwise. Numbers are what the tools reported, not estimates.
-
-### Minimum
-
-| | Offline (recommended) | Cloud provider |
-|---|---|---|
-| **RAM** | **8 GB** | 4 GB |
-| **Free disk** | **3 GB** | 800 MB |
-| **CPU** | 64-bit, 4 cores | 64-bit, 2 cores |
-| **Internet** | First setup only | Every question |
-| **Account / key** | None | Yes, and questions leave the machine |
-
-**Why 8 GB for offline.** An answer holds two processes at once — measured:
-
-| | peak |
-|---|---|
-| Python side, retrieval only | 639 MB |
-| Python side, full answer | 826 MB |
-| Ollama holding `qwen2.5:3b-instruct` at 8192 context | 2.3 GB |
-| **Together, during an answer** | **≈ 3.1 GB** |
-
-On 4 GB that leaves nothing for the OS and a browser, and the machine swaps —
-which on this workload means an answer that took 11 seconds takes minutes.
-4 GB is only viable with a cloud provider, where no model is held locally.
-
-**Where the disk goes.**
-
-| | |
-|---|---|
-| Application | 414 MB installed (290 MB download) — includes the 240 MB embedding model |
-| `qwen2.5:3b-instruct` | 1.9 GB on disk, 2.3 GB loaded |
-| Archive + search index | ~3 MB (888 KB corpus, 1.7 MB index) — tiny; the model dominates |
-
-Swapping to `qwen2.5:7b-instruct` needs roughly 4.7 GB more disk and a machine
-with real headroom — see the note in `pakpatat/config.py` about why 3B is the
-default.
-
-### Operating systems
-
-| | Minimum | Notes |
-|---|---|---|
-| **macOS** | 11 Big Sur | Built and verified on 14.7.1. The `.dmg` is **arm64 (Apple Silicon) only** — see below. |
-| **Windows** | 10 (1809) or 11, 64-bit | Needs the Edge WebView2 runtime, present by default on current builds; the installer warns if missing. |
-| **Linux** | any current distro | From a checkout, not packaged. Needs WebKitGTK for the app window. |
-
-No GPU is required. On Apple Silicon, Ollama uses the GPU through unified
-memory automatically — which is why the 2.3 GB above counts against system RAM.
-
-**Apple Silicon vs Intel.** PyInstaller builds for the architecture of the
-Python that runs it, and a `universal2` build would need every wheel in the
-tree to be universal2 — `onnxruntime`'s is not. The published `.dmg` is
-therefore arm64. Intel Macs can run from a checkout, or build their own `.dmg`
-from an x86_64 Python.
-
-### Measured performance
-
-On the reference M1, with `qwen2.5:3b-instruct`:
-
-| | |
-|---|---|
-| Retrieval | ~11 ms warm |
-| First question after launch | ~70 s (the model loading into RAM) |
-| Later questions | 5–11 s |
-
-The first-question delay is the model load, not the search. It is why
-`ASSISTANT_OLLAMA_KEEP_ALIVE` defaults to 30 minutes.
-
-## Run
-
-```bash
-python app.py            # desktop window (WKWebView / WebView2 — no Electron)
-python mcp_server.py     # MCP server, for use from an AI client
-```
-
-The app opens a native window served from `127.0.0.1` only, on a port chosen at
-startup. Questions never leave the machine unless you deliberately switch to a
-cloud provider in Settings.
-
-The MCP server exposes two tools, deliberately separated: `search_archive`
-(pure retrieval — no model, no key, cannot invent) and `ask_archive` (the full
-cited-answer pipeline). Registration snippet is in the `mcp_server.py`
-docstring.
-
-## Keeping the archive current
-
-Guidance for refugees goes stale, and stale guidance here is not a cosmetic
-problem. The app's own **Knowledge base** panel (the 📚 button in the sidebar)
-does this from a button, for anyone: **Get the archive** for an install that
-has none, **Check for updates** → **Review the update** → **Apply update** for
-one that already works. It shows what the archive actually covers (documents,
-passages, topics), reports any phone number, fee or email an update would
-change before you apply it, and never touches what the app answers from until
-you press Apply. See `pakpatat/archive.py` for how it crawls politely
-(robots.txt, rate limiting, a request budget) — the same rules
-`pipeline/refresh.py` below follows from a terminal.
-
-<img src="docs/screenshots/02-knowledge-base.png" alt="The Knowledge base panel: 52 documents, 616 passages indexed, 55 files and images; source badges for the earlier site, current site and partner materials; topic coverage chips; and a Check for updates button" width="820">
-
-*The Knowledge base panel: what the archive holds, which topics it covers, and
-when it was last checked against the live site.*
-
-### Giving another machine the half it cannot crawl
-
-The live site the app fetches for itself. The retired refugeemalaysia.org
-capture it cannot — that site went down on 2026-07-14, so its 80 remaining
-passages (the 22-clinic NGO directory, Verify Plus, the refugee lexicon) exist
-only in copies people already hold. Partner materials were never published at
-all.
-
-On the machine that has the archive:
-
-```bash
-scripts/make-archive-bundle.command          # ~3.6 MB — what the app indexes
-scripts/make-archive-bundle.command full     # ~1.8 GB — the whole archive
-```
-
-**Both produce identical search results.** Every retired-site passage comes
-from 30 `index.md` files totalling 214 KB; the corpus builder never opens
-`page.html` or `resources/`. The other 1.8 GB is training decks and posters —
-414 MB for one financial-literacy PDF — that this app cannot read a word of.
-Use `full` when handing over the whole archive to keep, not to make someone's
-app work.
-
-The script always packs from *inside* the archive root (zipping the folder
-instead of its contents is the mistake that unpacks fine and produces an app
-that answers nothing), verifies its own output unpacks correctly, and prints:
-
-```bash
-PAKPATAT_ARCHIVE_BUNDLE=https://…/pakpatat-archive-text.tar.gz
-PAKPATAT_ARCHIVE_SHA256=<digest>
-PAKPATAT_ARCHIVE_TOKEN=<if the host needs one>
-```
-
-Put those in the receiving install's `.env`. **Get the archive** then fetches
-the bundle, checks it against the digest, crawls the live site, and indexes
-both — live guidance winning any overlap. Nothing is configured by default; an
-install without these simply crawls the live site as before.
-
-Host it somewhere that needs a credential and serves the *file*, not a preview
-page. Share links from Drive, Dropbox and GitHub are rewritten to their
-download form automatically, and a response that turns out to be HTML is
-reported as such rather than failing as a corrupt archive. Note that a Drive
-"anyone with the link" share is readable by anyone who obtains the link —
-unlisted, not private. The contents are UNHCR's copyrighted work; read
-[NOTICE.md](NOTICE.md) before putting a bundle anywhere public.
-
-### From the command line
-
-`pipeline/refresh.py` is the same steps from the command line, useful for
-scripting a nightly check or working from a curated `PAKPATAT_ARCHIVE` that
-also holds the retired-site capture and partner materials the panel's crawl
-cannot reach (it only knows the live site):
-
-```bash
-python pipeline/refresh.py detect    # what changed? cheap, read-only
-python pipeline/refresh.py fetch     # pull just the changed pages
-python pipeline/refresh.py build     # rebuild corpus + index into data/staging/
-python pipeline/refresh.py diff      # what would change in the answers?
-python pipeline/refresh.py promote   # swap staging in, atomically
-python pipeline/refresh.py status    # where is this refresh up to?
-```
-
-**`promote` is always a human decision.** The fact most likely to change on a
-help site is exactly the fact most dangerous to get wrong, so `diff` reports
-changes to phone numbers, fees and emails separately and loudly, and nothing
-reaches case workers until someone has read them.
-
-On macOS you can run the check nightly:
-
-```bash
-./scripts/install-schedule.command        # 03:10 nightly, + a random 0–30 min wait
-./scripts/install-schedule.command test   # run one check now, in this window
-./scripts/install-schedule.command off    # remove it
-```
-
-It detects, fetches, stages and notifies. It **never publishes**. On a normal
-night nothing has changed and it makes about three requests.
-
-The HTTP client (`pakpatat/scrape.py`) is where [NOTICE.md](NOTICE.md)'s
-promise not to hammer a humanitarian organisation's servers is actually
-enforced, rather than being a line in a document: robots.txt fetched and obeyed
-(failing *closed* if it cannot be read), a 2 s rate limit with jitter,
-conditional `If-None-Match` / `If-Modified-Since` requests so an unchanged page
-costs a 304 with no body, backoff honouring `Retry-After`, a hard per-run
-request budget, and a User-Agent that says what the client is and how to make
-it stop. Standard library only.
+`scripts/make-archive-bundle.command` packages the un-crawlable half of an
+archive (a retired site capture, partner materials) for another machine over
+a private, credentialed link — the script itself explains what it includes
+and why. Do not put a bundle anywhere public: the contents are UNHCR's
+copyrighted work.
 
 ## Configuration
 
-All optional — the defaults are the tuned values, and several were set by
-measurement after an initial guess proved wrong. Read the comments in
-`pakpatat/config.py` before changing them.
+All optional — the defaults are the tuned values (see the comments in
+`pakpatat/config.py` before changing them):
 
 | variable | default | |
 |---|---|---|
 | `PAKPATAT_ARCHIVE` | — | source archive (corpus builder and refresh only) |
 | `PAKPATAT_DATA` | `./data` | where corpus and index live |
 | `ASSISTANT_MODEL_PROVIDER` | `ollama` | `ollama`, `google_genai`, `anthropic`, `openai` |
-| `ASSISTANT_MODEL` | `qwen2.5:3b-instruct` | 7b is more accurate but was slow enough on a reference laptop to trip the desktop window's timeout, see `pakpatat/config.py` |
+| `ASSISTANT_MODEL` | `qwen2.5:3b-instruct` | see `pakpatat/config.py` before changing |
 | `ASSISTANT_TOP_K` | `8` | chunks per prompt |
 | `ASSISTANT_MIN_SCORE` | `0.28` | refusal gate |
-| `ASSISTANT_NUM_CTX` | `8192` | Ollama truncates **silently** at its 4096 default |
+| `ASSISTANT_NUM_CTX` | `8192` | Ollama truncates silently at its 4096 default |
 
-API keys go in `.env` (git-ignored) via the in-app Settings panel. Never commit
-one; never accept one pasted into a chat.
+API keys go in `.env` (git-ignored) via the in-app Settings panel. Never
+commit one.
 
 ## Languages
 
 The interface is English and Burmese, and questions can be typed in either.
-
-Interface translation and free-text question support are **different
-problems**, and a language can have the first without the second: the embedding
-model represents some languages well and others barely at all, and a language it
-does not represent retrieves at random no matter how good the translation is.
-**Do not promise a language without running the measurement first** —
-[i18n/README.md](i18n/README.md) has the method, the numbers, and what to do
-when a language fails it.
-
-<img src="docs/screenshots/03-guide.png" alt="The What can I ask panel, listing categories and questions in English with Burmese category names" width="820">
-
-*Every suggested question here was run through the retriever before it was
-added — suggesting a question the archive cannot answer teaches people the tool
-is useless exactly when they need it.*
+Interface translation and free-text retrieval are different problems — do not
+promise a language without measuring it first;
+[i18n/README.md](i18n/README.md) has the method and the numbers.
 
 ## Contributing
 
@@ -715,32 +159,42 @@ Two rules beyond the usual:
 
 1. **Never add a suggested question to the in-app guide without running it
    through the retriever first.** Suggesting a question the archive cannot
-   answer teaches people the tool is useless exactly when they need it. Several
-   plausible drafts measured *below* the refusal gate and were dropped.
-2. **A retrieval change is not done until `--compare` passes.** Score alone is
-   not enough: one rephrasing scored higher while silently ceasing to retrieve
-   the hotline it was meant to find. Check that the *fact* is in the window.
+   answer teaches people the tool is useless exactly when they need it.
+2. **A retrieval change is not done until `--compare` passes.** Check that
+   the *fact* is in the window, not just that the score went up.
 
-Terminology, the name and its written form are fixed in [TERMS.md](TERMS.md).
+Every source file opens with an SPDX licence line and a shared copyright
+line; keep them if you lift a file out of the tree. Git history is the
+authorship record — you are not required to add your name anywhere to
+contribute.
 
-**Credit and headers.** Every source file opens with two lines:
+## Notices
 
-```python
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2026 Hung Om and Päkpätät contributors
-```
+- **Not affiliated with UNHCR.** This is an independent tool, not endorsed
+  by, affiliated with, or operated by UNHCR or any UN body. Do not present it
+  as an official UNHCR service, and do not use UNHCR's name, logo or brand
+  colour as if it were.
+- **Content is © UNHCR or its partners.** This repository ships code only:
+  `data/` is git-ignored, and the history contains no archive content, no
+  `.env` and no `*.jsonl`. Fetching pages for your own offline use is not the
+  same act as republishing them — ask UNHCR before distributing content, and
+  keep the polite-crawling guarantees in `pakpatat/scrape.py` intact if you
+  fork.
+- **Not legal or immigration advice.** It is an information-retrieval aid: it
+  refuses rather than guesses when the archive does not cover a question, and
+  it flags answers drawn from retired pages. Keep both behaviours.
+- **No personal data.** The corpus holds published organisational contact
+  details only. Never extend it with case files, client records or anything
+  identifying an individual — nothing here is designed or audited for that,
+  and the app stores conversation history in plain `localStorage`.
+- **Takedown.** If anything here is a problem for a rights holder, contact
+  the operating organisation and it will be removed on request.
 
-Keep them if you fork or lift a file — several modules here (`scrape.py`,
-`factcheck.py`, `corpus.py`) are useful on their own, and a header is the only
-credit that travels with a file someone copies out of the tree. It names no
-individual contributor on purpose, so it never goes stale and nobody has to
-maintain a list: **git history is the record of who wrote what**, and it is
-better at it than a comment. Contributors keep their copyright and are covered
-by "and Päkpätät contributors" without editing 33 files.
-
-You are not required to add your name anywhere to contribute.
+Built by **Hung Om** for the community workers of one refugee
+community-based organisation, and published under the MIT licence in case it
+is useful to anyone in the same position.
 
 ## Licence
 
-Code: [MIT](LICENSE).
-Archive content: not covered, not included — see [NOTICE.md](NOTICE.md).
+Code: [MIT](LICENSE). Archive content: not covered, not included — see
+[Notices](#notices).

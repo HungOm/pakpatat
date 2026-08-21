@@ -85,7 +85,7 @@ INDEX_META="$(python -c 'from pakpatat import config; print(config.INDEX_META)')
 CORPUS="$(python -c 'from pakpatat import config; print(config.CORPUS)')"
 if [ ! -f "$INDEX_META" ]; then
   # No index AND no corpus means this copy was handed over without an archive.
-  # The repository ships code only (see NOTICE.md), so a fresh copy has nothing
+  # The repository ships code only (see the README's notices), so a fresh copy has nothing
   # to search. Previously build_index.py exited here with "Corpus not found:
   # /long/path/corpus.jsonl -- run pipeline/build_corpus.py first", `set -e`
   # closed the window, and a case worker was left with a file path and no idea

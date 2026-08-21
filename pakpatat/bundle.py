@@ -18,7 +18,7 @@ operator controls, fetched as the first step of "Get the archive".
 DELIBERATELY UNCONFIGURED BY DEFAULT
 ------------------------------------
 There is no built-in URL and there will not be one. The material in a bundle is
-UNHCR's copyrighted work (NOTICE.md), and publishing it is UNHCR's decision to
+UNHCR's copyrighted work (see the README's notices), and publishing it is UNHCR's decision to
 make, not this project's -- so the software ships the mechanism and the operator
 supplies a source they have the right to serve. An install with nothing
 configured simply skips this step and crawls the live site, which is exactly

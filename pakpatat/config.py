@@ -51,8 +51,8 @@ load_dotenv(HOME / ".env")
 # ---------------------------------------------------------------- data sources
 #
 # Nothing here ships with the repository. `data/` is generated on the operator's
-# own machine from their own copy of the source material -- see NOTICE.md for
-# why the archive itself is not distributed.
+# own machine from their own copy of the source material -- see the README's
+# notices for why the archive itself is not distributed.
 #
 #   PAKPATAT_DATA     where the corpus and index live      (default: ./data)
 #   PAKPATAT_ARCHIVE  the scraped source pages, read ONLY by

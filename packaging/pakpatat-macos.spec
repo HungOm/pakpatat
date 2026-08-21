@@ -35,7 +35,7 @@ from pakpatat import brand                       # noqa: E402
 datas = [
     (str(ROOT / "ui" / "index.html"), "ui"),
     (str(ROOT / "ui" / "brand"), "ui/brand"),
-    (str(ROOT / "NOTICE.md"), "."),
+    (str(ROOT / "README.md"), "."),
     (str(ROOT / "LICENSE"), "."),
 ]
 binaries = []
@@ -93,7 +93,7 @@ if os.getenv("PAKPATAT_BUNDLE_ARCHIVE") == "1":
         if (data_dir / "index").exists():
             datas.append((str(data_dir / "index"), "archive/index"))
         print("[spec] *** BUNDLING ARCHIVE CONTENT -- confirm you have the "
-              "right to distribute it (NOTICE.md) ***")
+              "right to distribute it (see README notices) ***")
 
 a = Analysis(
     [str(ROOT / "app.py")],
@@ -128,7 +128,7 @@ app = BUNDLE(
         "CFBundleShortVersionString": VERSION,
         "CFBundleVersion": VERSION,
         "NSHumanReadableCopyright":
-            "MIT licensed. Ships no archive content - see NOTICE.md. "
+            "MIT licensed. Ships no archive content - see README.md. "
             "Not affiliated with UNHCR.",
         # Retina: without this the webview renders at 1x and the whole UI is
         # soft on every Mac made in the last decade.
