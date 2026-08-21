@@ -73,10 +73,15 @@ but silently dropped recall from 90% to 80%.
 
 ## Install
 
-**Windows / macOS, one download.** Get the installer or `.dmg` from
-[Releases](../../releases). Per-user install, no administrator password; the
-macOS app is unsigned, so right-click → **Open**, once. Neither download
-contains archive content. Offline answers need
+**Windows / macOS, one download.** Get it from [Releases](../../releases):
+
+| | |
+|---|---|
+| **Windows — installer** | `Pakpatat-Setup-<version>.exe`. Per-user install, no administrator password. |
+| **Windows — portable** | `Pakpatat-<version>-windows-x64-portable.zip`. Unzip anywhere, run `Pakpatat.exe`. Nothing installed, nothing written outside the folder — so it runs from a USB stick, or on a managed laptop you are not an administrator on. |
+| **macOS** | `Pakpatat-<version>-macOS-arm64.dmg`. Unsigned, so right-click → **Open**, once. |
+
+No download contains archive content. Offline answers need
 [Ollama](https://ollama.com/download) plus `ollama pull qwen2.5:3b-instruct`
 (~2 GB) — the first-run screen checks what is missing and offers a button for
 everything it can fix itself.

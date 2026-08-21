@@ -81,25 +81,82 @@ jobs:
           if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
           echo "ISCC=$iscc" >> $env:GITHUB_ENV
 
-      - name: Build the installer
-        run: '& "$env:ISCC" packaging\installer.iss /DMyAppVersion=${{ env.VERSION }}'
+      # A portable .zip of the folder PyInstaller just built and smoke-tested.
+      # Produced BEFORE the installer is attempted, and shipped regardless of
+      # whether the installer step succeeds, because these are two different
+      # promises: this one only needs the app to compile and pass --selftest,
+      # which the two steps above have already proven. v1.2.0 shipped with no
+      # Windows download at all because ISCC failed after a perfectly good
+      # build -- that must not be able to happen again.
+      #
+      # It is also the better download for some of this app's users: no
+      # installer, no Add/Remove Programs entry, runs from a USB stick on a
+      # managed laptop.
+      - name: Package the portable .zip
+        run: |
+          $zip = "dist\Pakpatat-${{ env.VERSION }}-windows-x64-portable.zip"
+          Compress-Archive -Path dist\Pakpatat\* -DestinationPath $zip -CompressionLevel Optimal
+          "{0:N0} MB" -f ((Get-Item $zip).Length / 1MB)
 
       - uses: actions/upload-artifact@v4
+        with:
+          name: Pakpatat-${{ env.VERSION }}-windows-portable
+          path: dist/*portable.zip
+          if-no-files-found: error
+
+      # continue-on-error, deliberately. ISCC is the one step here that can
+      # fail on something other than this project's own code, and when it does
+      # the .zip above is still a working Windows download. The summary below
+      # makes the reason readable from the run page without digging through
+      # the log, which is what made the last failure take so long to place.
+      - name: Build the installer
+        id: installer
+        continue-on-error: true
+        run: |
+          & "$env:ISCC" /Qp packaging\installer.iss /DMyAppVersion=${{ env.VERSION }} 2>&1 |
+            Tee-Object -FilePath iscc.log
+          if ($LASTEXITCODE -ne 0) { throw "ISCC exited $LASTEXITCODE" }
+
+      - name: Report why the installer failed
+        if: steps.installer.outcome == 'failure'
+        run: |
+          "## Installer step failed" >> $env:GITHUB_STEP_SUMMARY
+          "The portable .zip was still built and published." >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path iscc.log) { Get-Content iscc.log -Tail 40 >> $env:GITHUB_STEP_SUMMARY }
+          '```' >> $env:GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v4
+        if: steps.installer.outcome == 'success'
         with:
           name: Pakpatat-Setup-${{ env.VERSION }}
           path: dist/Pakpatat-Setup-*.exe
           if-no-files-found: error
 
+      # Both files, and the glob for the .exe is allowed to match nothing --
+      # action-gh-release does not fail on an unmatched pattern by default, so
+      # a release still goes out with the portable .zip when ISCC could not
+      # produce an installer.
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Pakpatat-Setup-*.exe
+          files: |
+            dist/*portable.zip
+            dist/Pakpatat-Setup-*.exe
           body: |
-            **One download, installs without an administrator password.**
+            **Windows, 64-bit.** Two ways to get it:
 
-            This installer contains the application only. It ships **no archive
-            content** — see the README's notices. Point it at your own archive, or ask
+            - **`Pakpatat-Setup-<version>.exe`** — the installer. Installs
+              per-user, so it needs no administrator password. (Not present if
+              the installer step failed for this build; use the .zip.)
+            - **`Pakpatat-<version>-windows-x64-portable.zip`** — unzip it
+              anywhere and run `Pakpatat.exe`. Nothing is installed and nothing
+              is written outside the folder, so it runs from a USB stick or a
+              managed laptop you are not an administrator on.
+
+            Both contain the application only. They ship **no archive content** —
+            see the README's notices. Point it at your own archive, or ask
             whoever maintains yours for the data folder.
 
             Offline answers additionally need [Ollama](https://ollama.com/download)
