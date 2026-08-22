@@ -95,8 +95,18 @@ jobs:
       - name: Package the portable .zip
         run: |
           $zip = "dist\Pakpatat-${{ env.VERSION }}-windows-x64-portable.zip"
-          Compress-Archive -Path dist\Pakpatat\* -DestinationPath $zip -CompressionLevel Optimal
-          "{0:N0} MB" -f ((Get-Item $zip).Length / 1MB)
+          # 7-Zip is preinstalled on the runner and is minutes faster than
+          # Compress-Archive here: PyInstaller emits several thousand small
+          # files and Compress-Archive walks them one at a time. Fall back to
+          # it anyway rather than depend on an image detail.
+          if (Get-Command 7z -ErrorAction SilentlyContinue) {
+            7z a -tzip -mx=7 $zip .\dist\Pakpatat\* | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "7z exited $LASTEXITCODE" }
+          } else {
+            Compress-Archive -Path dist\Pakpatat\* -DestinationPath $zip -CompressionLevel Optimal
+          }
+          if (-not (Test-Path $zip)) { throw "no zip produced" }
+          "portable zip: {0:N0} MB" -f ((Get-Item $zip).Length / 1MB)
 
       - uses: actions/upload-artifact@v4
         with:
