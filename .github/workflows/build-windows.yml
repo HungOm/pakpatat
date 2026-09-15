@@ -59,10 +59,13 @@ jobs:
       - name: Compile installer.iss against the stub
         id: lint
         continue-on-error: true
-        run: |
-          & "$env:ISCC" packaging\installer.iss /DMyAppVersion=0.0.0 2>&1 |
-            Tee-Object -FilePath iscc-lint.log
-          if ($LASTEXITCODE -ne 0) { throw "ISCC exited $LASTEXITCODE" }
+        # cmd, NOT PowerShell. Actions runs pwsh with $ErrorActionPreference
+        # set to 'stop', so `iscc 2>&1 | Tee-Object` turns ISCC's first stderr
+        # line into a terminating error and kills the pipeline -- truncating
+        # the log immediately BEFORE the message we are trying to read. cmd
+        # redirects at the process level and cannot do that.
+        shell: cmd
+        run: '"%ISCC%" packaging\installer.iss /DMyAppVersion=0.0.0 > iscc-lint.log 2>&1'
 
       - name: Report the error as annotations
         if: steps.lint.outcome == 'failure'
@@ -70,13 +73,20 @@ jobs:
         # are readable from the PUBLIC API with no token -- which is the whole
         # point: it lets the error reach a Mac that cannot authenticate.
         run: |
-          if (Test-Path iscc-lint.log) {
-            Get-Content iscc-lint.log -Tail 25 | Where-Object { $_.Trim() } | ForEach-Object {
-              $line = $_ -replace '%', '%25' -replace "`r", ''
-              Write-Output "::error title=ISCC (stub)::$line"
+          $log = "iscc-lint.log"
+          if (Test-Path $log) {
+            $lines = Get-Content $log | Where-Object { $_.Trim() }
+            $hits  = $lines | Select-String -Pattern 'error|cannot|invalid|failed|not supported|unsupported' -SimpleMatch:$false
+            $body  = (($lines | Select-Object -Last 40) -join "`n")
+            $esc   = $body -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A'
+            Write-Output "::error title=ISCC stub tail::$esc"
+            if ($hits) {
+              $h = (($hits | ForEach-Object { $_.Line }) -join "`n")
+              $he = $h -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A'
+              Write-Output "::error title=ISCC stub error lines::$he"
             }
           } else {
-            Write-Output "::error title=ISCC (stub)::ISCC produced no log at all"
+            Write-Output "::error title=ISCC stub::ISCC produced no log at all"
           }
 
       - name: Fail the job if the script does not compile
@@ -186,18 +196,24 @@ jobs:
       - name: Build the installer
         id: installer
         continue-on-error: true
-        run: |
-          & "$env:ISCC" /Qp packaging\installer.iss /DMyAppVersion=${{ env.VERSION }} 2>&1 |
-            Tee-Object -FilePath iscc.log
-          if ($LASTEXITCODE -ne 0) { throw "ISCC exited $LASTEXITCODE" }
+        # cmd, for the reason spelled out on the lint job's compile step.
+        shell: cmd
+        run: '"%ISCC%" packaging\installer.iss /DMyAppVersion=${{ env.VERSION }} > iscc.log 2>&1'
 
       - name: Report why the installer failed
         if: steps.installer.outcome == 'failure'
         run: |
-          if (Test-Path iscc.log) {
-            Get-Content iscc.log -Tail 25 | Where-Object { $_.Trim() } | ForEach-Object {
-              $line = $_ -replace '%', '%25' -replace "`r", ''
-              Write-Output "::error title=ISCC::$line"
+          $log = "iscc.log"
+          if (Test-Path $log) {
+            $lines = Get-Content $log | Where-Object { $_.Trim() }
+            $hits  = $lines | Select-String -Pattern 'error|cannot|invalid|failed|not supported|unsupported' -SimpleMatch:$false
+            $body  = (($lines | Select-Object -Last 40) -join "`n")
+            $esc   = $body -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A'
+            Write-Output "::error title=ISCC tail::$esc"
+            if ($hits) {
+              $h = (($hits | ForEach-Object { $_.Line }) -join "`n")
+              $he = $h -replace '%', '%25' -replace "`r", '%0D' -replace "`n", '%0A'
+              Write-Output "::error title=ISCC error lines::$he"
             }
           } else {
             Write-Output "::error title=ISCC::ISCC produced no log at all"
