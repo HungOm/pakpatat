@@ -14,12 +14,75 @@ name: Build Windows installer
 on:
   push:
     tags: ["v*"]
+    # workflow_dispatch is a REST call, and an SSH key only authenticates git,
+    # so a Mac with no token cannot dispatch this. A push IS git, so this
+    # branch is the one trigger reachable with nothing but the deploy key.
+    branches: ["ci/windows"]
   workflow_dispatch:
 
 permissions:
   contents: write          # needed only by the release step below
 
 jobs:
+  # WHY A SECOND JOB
+  # ----------------
+  # The installer step has failed in every run this workflow has ever had, and
+  # it sits at the END of a ~30-minute build: install deps, fetch a 220MB
+  # model, freeze ~500MB, and only then find out whether ISCC likes the script.
+  # That is a terrible loop to debug in.
+  #
+  # This job compiles the SAME installer.iss against a stub payload in about
+  # two minutes. It cannot tell us anything about size or compression -- but if
+  # the fault is in the script, it says so immediately, and if it passes while
+  # `build` still fails, that itself narrows the fault to the real payload.
+  iss-lint:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stand up a stub payload
+        # installer.iss globs ..\dist\Pakpatat\* and refuses an empty match,
+        # so give it something to find. Contents are irrelevant to ISCC.
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\Pakpatat\ui | Out-Null
+          Set-Content dist\Pakpatat\Pakpatat.exe  "stub"
+          Set-Content dist\Pakpatat\ui\index.html "<html></html>"
+
+      - name: Locate ISCC
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
+          "ISCC=$iscc" >> $env:GITHUB_ENV
+          "Inno Setup {0}" -f (Get-Item $iscc).VersionInfo.ProductVersion
+
+      - name: Compile installer.iss against the stub
+        id: lint
+        continue-on-error: true
+        run: |
+          & "$env:ISCC" packaging\installer.iss /DMyAppVersion=0.0.0 2>&1 |
+            Tee-Object -FilePath iscc-lint.log
+          if ($LASTEXITCODE -ne 0) { throw "ISCC exited $LASTEXITCODE" }
+
+      - name: Report the error as annotations
+        if: steps.lint.outcome == 'failure'
+        # ::error:: annotations, not just the log, because check-run annotations
+        # are readable from the PUBLIC API with no token -- which is the whole
+        # point: it lets the error reach a Mac that cannot authenticate.
+        run: |
+          if (Test-Path iscc-lint.log) {
+            Get-Content iscc-lint.log -Tail 25 | Where-Object { $_.Trim() } | ForEach-Object {
+              $line = $_ -replace '%', '%25' -replace "`r", ''
+              Write-Output "::error title=ISCC (stub)::$line"
+            }
+          } else {
+            Write-Output "::error title=ISCC (stub)::ISCC produced no log at all"
+          }
+
+      - name: Fail the job if the script does not compile
+        if: steps.lint.outcome == 'failure'
+        run: exit 1
+
   build:
     runs-on: windows-latest
     steps:
@@ -80,6 +143,7 @@ jobs:
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
           if (-not (Test-Path $iscc)) { throw "Inno Setup not found at $iscc" }
           echo "ISCC=$iscc" >> $env:GITHUB_ENV
+          "Inno Setup {0}" -f (Get-Item $iscc).VersionInfo.ProductVersion
 
       # A portable .zip of the folder PyInstaller just built and smoke-tested.
       # Produced BEFORE the installer is attempted, and shipped regardless of
@@ -130,6 +194,14 @@ jobs:
       - name: Report why the installer failed
         if: steps.installer.outcome == 'failure'
         run: |
+          if (Test-Path iscc.log) {
+            Get-Content iscc.log -Tail 25 | Where-Object { $_.Trim() } | ForEach-Object {
+              $line = $_ -replace '%', '%25' -replace "`r", ''
+              Write-Output "::error title=ISCC::$line"
+            }
+          } else {
+            Write-Output "::error title=ISCC::ISCC produced no log at all"
+          }
           "## Installer step failed" >> $env:GITHUB_STEP_SUMMARY
           "The portable .zip was still built and published." >> $env:GITHUB_STEP_SUMMARY
           '```' >> $env:GITHUB_STEP_SUMMARY
