@@ -97,10 +97,15 @@ begin
     RegQueryStringValue(HKLM, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Value) or
     RegQueryStringValue(HKCU, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Value);
   if not Found then
-    MsgBox('Microsoft Edge WebView2 was not found on this computer.' #13#10 #13#10
-           'Pakpatat will still work, but it will open in your web browser '
-           'instead of its own window.' #13#10 #13#10
-           'To get the app window, install "Edge WebView2 Runtime" from '
+    { The + signs are load-bearing. Pascal Script folds a string literal
+      together with a CHARACTER constant next to it -- 'text' #13#10 is one
+      constant -- but two adjacent string literals are a syntax error, not a
+      concatenation. Without these, ISCC aborts at "Compiling [Code] section"
+      and no installer is produced at all. }
+    MsgBox('Microsoft Edge WebView2 was not found on this computer.' #13#10 #13#10 +
+           'Pakpatat will still work, but it will open in your web browser ' +
+           'instead of its own window.' #13#10 #13#10 +
+           'To get the app window, install "Edge WebView2 Runtime" from ' +
            'Microsoft, then run Pakpatat again.',
            mbInformation, MB_OK);
   Result := True;
