@@ -158,7 +158,16 @@ def _open(target: str):
             "The archive bundle URL must start with https:// -- refusing to "
             "download an archive over an unencrypted connection."
         )
-    headers = {"User-Agent": f"Pakpatat/{_version()} (archive bundle fetch)"}
+    # Ask for bytes, not a description of them. GitHub's release-asset API --
+    # the one host that can serve a PRIVATE bundle to a Bearer token, and so
+    # the only way to share an archive without publishing it -- answers
+    # /releases/assets/<id> with JSON metadata unless octet-stream is
+    # requested, which would arrive here as "that was not a .tar.gz". The
+    # */* keeps every ordinary file server unaffected.
+    headers = {
+        "User-Agent": f"Pakpatat/{_version()} (archive bundle fetch)",
+        "Accept": "application/octet-stream, */*",
+    }
     tok = token()
     if tok:
         headers["Authorization"] = f"Bearer {tok}"
