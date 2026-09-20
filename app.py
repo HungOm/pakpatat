@@ -518,16 +518,24 @@ def selftest() -> int:
     """
     from pakpatat import brand, config
     ok = True
+    # A Windows build is compiled console=False, so every print() here goes
+    # nowhere and a failure arrives as a bare exit code with no clue attached.
+    # Set PAKPATAT_SELFTEST_LOG and the report is written down as well.
+    lines: list[str] = []
+
+    def say(text=""):
+        lines.append(text)
+        print(text)
 
     def check(label, cond, detail=""):
         nonlocal ok
         ok = ok and bool(cond)
-        print(f"  {'OK ' if cond else 'FAIL'}  {label}{(' — ' + detail) if detail else ''}")
+        say(f"  {'OK ' if cond else 'FAIL'}  {label}{(' — ' + detail) if detail else ''}")
 
-    print(brand.console_banner(ascii_only=True))
-    print(f"  version {__import__('pakpatat').__version__}  frozen={config.FROZEN}")
-    print(f"  bundle  {config.BUNDLE}")
-    print(f"  home    {config.HOME}")
+    say(brand.console_banner(ascii_only=True))
+    say(f"  version {__import__('pakpatat').__version__}  frozen={config.FROZEN}")
+    say(f"  bundle  {config.BUNDLE}")
+    say(f"  home    {config.HOME}")
     check("ui/index.html present", UI_FILE.exists(), str(UI_FILE))
     check("brand icons present", (config.BUNDLE / "ui" / "brand").is_dir())
     check("writable state dir", os.access(config.HOME, os.W_OK), str(config.HOME))
@@ -542,7 +550,13 @@ def selftest() -> int:
         check("onnxruntime loads", True)
     except Exception as e:                                    # noqa: BLE001
         check("onnxruntime loads", False, repr(e))
-    print(f"\n  {'PASS' if ok else 'FAIL'}")
+    say(f"\n  {'PASS' if ok else 'FAIL'}")
+    log = os.getenv("PAKPATAT_SELFTEST_LOG")
+    if log:
+        try:
+            pathlib.Path(log).write_text("\n".join(lines) + "\n", encoding="utf-8")
+        except OSError as e:                                  # noqa: BLE001
+            print(f"(could not write {log}: {e})")
     return 0 if ok else 1
 
 
@@ -565,4 +579,19 @@ if __name__ == "__main__":
                 print(f"       fix: {c['command'] or c['fix']}")
         print(f"\n  {'Ready.' if report['ready'] else 'Not ready.'}")
         sys.exit(0 if report["ready"] else 1)
+    if "--serve" in sys.argv:
+        # The UI on a KNOWN port, with no window and no model warm-up.
+        #
+        # This exists for the Windows build check. The failure this app is
+        # most prone to is not a crash -- it is opening fine and then serving
+        # a 500 for its own UI, because a data file did not survive freezing.
+        # --selftest cannot see that: it checks index.html EXISTS, not that
+        # the server hands it over. A runner has no desktop for a window and
+        # a console=False build has no stdout to publish a random port on, so
+        # the port is fixed here and CI simply asks for the page.
+        port = 8765
+        if "--port" in sys.argv:
+            port = int(sys.argv[sys.argv.index("--port") + 1])
+        print(f"serving on http://127.0.0.1:{port}/")
+        Server(("127.0.0.1", port), Handler).serve_forever()
     main()

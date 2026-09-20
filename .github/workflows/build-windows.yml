@@ -145,7 +145,23 @@ jobs:
         # import or data file that shows up only outside a checkout. NOT
         # continue-on-error -- shipping an installer whose app cannot find its
         # own UI is worse than shipping nothing.
-        run: dist\Pakpatat\Pakpatat.exe --selftest
+        #
+        # Start-Process -Wait, NOT `& dist\Pakpatat\Pakpatat.exe`. The app is
+        # frozen console=False, and PowerShell does not wait for a GUI-subsystem
+        # process: it returns instantly and the step passes no matter what the
+        # app did or what it exited with. This step reported 1.0s in every run
+        # while the app's own imports take longer than that -- it had been
+        # checking nothing since the day it was added.
+        #
+        # console=False also means the report has nowhere to print, so
+        # PAKPATAT_SELFTEST_LOG asks the app to write it down for us.
+        env:
+          PAKPATAT_SELFTEST_LOG: ${{ github.workspace }}\selftest-build.log
+        run: |
+          $p = Start-Process -FilePath dist\Pakpatat\Pakpatat.exe `
+                             -ArgumentList '--selftest' -Wait -PassThru
+          if (Test-Path $env:PAKPATAT_SELFTEST_LOG) { Get-Content $env:PAKPATAT_SELFTEST_LOG }
+          if ($p.ExitCode -ne 0) { throw "selftest exited $($p.ExitCode)" }
 
       - name: Ensure Inno Setup is available
         run: |
@@ -181,6 +197,25 @@ jobs:
           }
           if (-not (Test-Path $zip)) { throw "no zip produced" }
           "portable zip: {0:N0} MB" -f ((Get-Item $zip).Length / 1MB)
+
+      - name: Verify the .zip, not the folder it came from
+        # The folder has been proven; the ZIP is what people actually download,
+        # and it is a separate artifact that a packaging mistake can break on
+        # its own. Unpack it somewhere else entirely and run the same check
+        # there, so a file the zip step failed to include surfaces here rather
+        # than on a case worker's laptop.
+        env:
+          PAKPATAT_SELFTEST_LOG: ${{ github.workspace }}\selftest-zip.log
+        run: |
+          $dest = "$env:RUNNER_TEMP\portable"
+          Remove-Item $dest -Recurse -Force -ErrorAction SilentlyContinue
+          7z x "dist\Pakpatat-${{ env.VERSION }}-windows-x64-portable.zip" "-o$dest" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "7z could not unpack the zip" }
+          $exe = Join-Path $dest "Pakpatat.exe"
+          if (-not (Test-Path $exe)) { throw "the zip contains no Pakpatat.exe" }
+          $p = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
+          if (Test-Path $env:PAKPATAT_SELFTEST_LOG) { Get-Content $env:PAKPATAT_SELFTEST_LOG }
+          if ($p.ExitCode -ne 0) { throw "the unpacked portable build failed selftest ($($p.ExitCode))" }
 
       - uses: actions/upload-artifact@v4
         with:
@@ -223,6 +258,55 @@ jobs:
           '```' >> $env:GITHUB_STEP_SUMMARY
           if (Test-Path iscc.log) { Get-Content iscc.log -Tail 40 >> $env:GITHUB_STEP_SUMMARY }
           '```' >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Install it, run it, make it serve, uninstall it
+        # The installer compiling is not the same promise as the installer
+        # working. This runs the real thing end to end on a clean machine:
+        # silent install (PrivilegesRequired=lowest, so no admin needed, and
+        # skipifsilent keeps the [Run] entry from launching the app behind us),
+        # selftest the INSTALLED copy, then ask it for its own UI over HTTP --
+        # the one failure selftest cannot see, since it checks that index.html
+        # exists, not that the server hands it over. Then uninstall, which also
+        # proves unins000.exe was produced and runs.
+        if: steps.installer.outcome == 'success'
+        env:
+          PAKPATAT_SELFTEST_LOG: ${{ github.workspace }}\selftest-installed.log
+        run: |
+          $setup = (Get-Item dist\Pakpatat-Setup-*.exe).FullName
+          $dir   = "$env:RUNNER_TEMP\installed"
+          $p = Start-Process -FilePath $setup -Wait -PassThru -ArgumentList `
+                 "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=$dir"
+          if ($p.ExitCode -ne 0) { throw "the installer exited $($p.ExitCode)" }
+
+          $exe = Join-Path $dir "Pakpatat.exe"
+          if (-not (Test-Path $exe)) { throw "the installer left no Pakpatat.exe in $dir" }
+          "installed {0:N0} files" -f (Get-ChildItem $dir -Recurse -File).Count
+
+          $s = Start-Process -FilePath $exe -ArgumentList '--selftest' -Wait -PassThru
+          if (Test-Path $env:PAKPATAT_SELFTEST_LOG) { Get-Content $env:PAKPATAT_SELFTEST_LOG }
+          if ($s.ExitCode -ne 0) { throw "the installed app failed selftest ($($s.ExitCode))" }
+
+          $srv = Start-Process -FilePath $exe -ArgumentList '--serve','--port','8765' -PassThru
+          try {
+            $served = $false
+            foreach ($i in 1..30) {
+              Start-Sleep -Seconds 2
+              try {
+                $r = Invoke-WebRequest -Uri http://127.0.0.1:8765/ -UseBasicParsing -TimeoutSec 5
+                if ($r.StatusCode -eq 200 -and $r.Content -match 'id="q"') {
+                  "served its own UI: HTTP 200, {0:N0} bytes, question box present" -f $r.Content.Length
+                  $served = $true; break
+                }
+              } catch { }
+            }
+            if (-not $served) { throw "the installed app never served its UI on 127.0.0.1:8765" }
+          } finally {
+            Stop-Process -InputObject $srv -Force -ErrorAction SilentlyContinue
+          }
+
+          $u = Start-Process -FilePath "$dir\unins000.exe" -Wait -PassThru `
+                             -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES"
+          if ($u.ExitCode -ne 0) { throw "the uninstaller exited $($u.ExitCode)" }
 
       - uses: actions/upload-artifact@v4
         if: steps.installer.outcome == 'success'
