@@ -189,6 +189,91 @@ def save(provider: str, model: str | None = None, api_key: str | None = None) ->
     return current()
 
 
+# The archive bundle (pakpatat/bundle.py) -- the un-crawlable half of an
+# archive, fetched from a URL the operator supplies.
+#
+# It lived in .env only, which meant an INSTALLED app could not be told where
+# its archive was: a case worker would have had to find and hand-edit a file
+# inside the install directory. Same storage as the API keys, same masking for
+# the token, so the panel that already exists for one secret covers this one.
+#
+# Still no built-in default, for the reason bundle.py states at length: the
+# material is UNHCR's copyrighted work and publishing it is their decision, not
+# this project's. This makes the URL settable, not supplied.
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def bundle_current() -> dict:
+    """The configured bundle source, with any token MASKED."""
+    from . import bundle
+    env = _read_env_file()
+
+    def val(key):
+        return (os.getenv(key) or env.get(key, "") or "").strip()
+
+    raw, tok = val("PAKPATAT_ARCHIVE_BUNDLE"), val("PAKPATAT_ARCHIVE_TOKEN")
+    resolved = bundle.normalize(raw) if raw else ""
+    return {
+        "url": raw,
+        # Show what the paste was rewritten to when it differs. A Drive share
+        # link becomes a different address entirely, and an operator who cannot
+        # see that has no way to tell a working link from a broken one until a
+        # crawl fails minutes later.
+        "resolved": resolved if resolved != raw else "",
+        "sha256": val("PAKPATAT_ARCHIVE_SHA256"),
+        "has_token": bool(tok),
+        "token_hint": (tok[:4] + "…" + tok[-4:]) if len(tok) > 12 else "",
+    }
+
+
+def save_bundle(url: str | None = None, sha256: str | None = None,
+                token: str | None = None) -> dict:
+    """Persist the bundle source. Rejects what bundle.py would refuse later.
+
+    Validated HERE rather than at fetch time because the fetch happens inside
+    "Get the archive", minutes into a crawl -- and an http:// URL or a mistyped
+    digest would surface there as a failed archive rather than as the typo it
+    is.
+    """
+    url = (url or "").strip()
+    sha256 = (sha256 or "").strip().lower()
+    token = (token or "").strip()
+
+    # An empty URL clears the whole source, token and digest included. Leaving
+    # a stale token behind for the next URL would send one operator's
+    # credential to another operator's host.
+    if not url:
+        _write_env_file({"PAKPATAT_ARCHIVE_BUNDLE": "",
+                         "PAKPATAT_ARCHIVE_SHA256": "",
+                         "PAKPATAT_ARCHIVE_TOKEN": ""})
+        for k in ("PAKPATAT_ARCHIVE_BUNDLE", "PAKPATAT_ARCHIVE_SHA256",
+                  "PAKPATAT_ARCHIVE_TOKEN"):
+            os.environ.pop(k, None)
+        return bundle_current()
+
+    if not url.lower().startswith("https://"):
+        raise ValueError("The bundle address must start with https:// — a "
+                         "plain http:// link is refused, because this "
+                         "downloads and unpacks files onto this computer.")
+    if sha256 and not SHA256_RE.match(sha256):
+        raise ValueError("A pinned digest must be 64 hexadecimal characters "
+                         "(the output of `shasum -a 256`).")
+
+    updates = {"PAKPATAT_ARCHIVE_BUNDLE": url, "PAKPATAT_ARCHIVE_SHA256": sha256}
+    # An omitted token leaves the stored one alone -- the UI never receives it
+    # back, so it cannot echo it to us, and treating "" as "delete" would wipe
+    # the token every time someone corrected a typo in the URL.
+    if token:
+        updates["PAKPATAT_ARCHIVE_TOKEN"] = token
+    _write_env_file(updates)
+    for k, v in updates.items():
+        if v:
+            os.environ[k] = v
+        else:
+            os.environ.pop(k, None)
+    return bundle_current()
+
+
 def check_ready() -> tuple[bool, str]:
     """Is the current provider usable? Returns (ok, message-for-the-user)."""
     env = _read_env_file()

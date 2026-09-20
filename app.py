@@ -125,6 +125,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             from pakpatat import settings
             state = settings.current()
             state["ready"], state["ready_message"] = settings.check_ready()
+            # Where "Get the archive" fetches its bundle from, if anywhere.
+            # Carried on the settings payload the panel already loads rather
+            # than as a second request, since it is rendered in the same panel.
+            state["bundle"] = settings.bundle_current()
             self._json(state)
         elif self.path == "/health":
             self._json({"ok": True})
@@ -203,6 +207,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._json(state)
             except Exception as e:  # noqa: BLE001
                 self._json({"error": str(e)}, 400)
+            return
+
+        if self.path == "/settings/bundle":
+            # Separate from /settings because it saves independently: an
+            # operator setting an archive source has no reason to re-submit a
+            # model provider, and a provider change must not clear a bundle.
+            from pakpatat import settings
+            try:
+                self._json(settings.save_bundle(
+                    url=payload.get("url"),
+                    sha256=payload.get("sha256"),
+                    token=payload.get("token"),
+                ))
+            except ValueError as e:
+                self._json({"error": str(e)}, 400)
+            except Exception as e:  # noqa: BLE001
+                self._json({"error": str(e)}, 500)
             return
 
         if self.path == "/post":

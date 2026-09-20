@@ -659,6 +659,40 @@
       <p class="note" data-i18n="keyNote"></p>
     </div>
 
+    <!-- Where "Get the archive" fetches the un-crawlable half from
+         (pakpatat/bundle.py). It lived in .env only, which meant an INSTALLED
+         app could not be told where its archive was without hand-editing a
+         file inside the install directory. Saves on its own button, because
+         an archive source and an answer engine are unrelated choices and
+         changing one must not resubmit the other.
+
+         English only, deliberately. The Burmese in this file is held to
+         native-speaker confirmation and a measured match (see the block above
+         STR.my); this panel is used by whoever sets a laptop up, not by the
+         case worker asking questions, so t() falling back to English here is
+         the honest option rather than inventing a translation. -->
+    <div id="bundleRow">
+      <label data-i18n="bundleUrl">Archive source (optional)</label>
+      <input id="bundleUrl" type="url" spellcheck="false" autocomplete="off"
+             data-i18n-ph="bundleUrlPh" placeholder="https://…">
+      <p class="note" data-i18n="bundleNote">Where to fetch the part of the archive no crawl can reach. Leave this empty and the app simply crawls the live site.</p>
+      <p class="note" id="bundleResolved" hidden></p>
+
+      <label data-i18n="bundleSha">Pin digest (optional)</label>
+      <input id="bundleSha" type="text" spellcheck="false" autocomplete="off"
+             data-i18n-ph="bundleShaPh" placeholder="64 hexadecimal characters">
+
+      <label data-i18n="bundleToken">Access token (optional)</label>
+      <input id="bundleToken" type="password" spellcheck="false" autocomplete="off"
+             data-i18n-ph="bundleTokenPh" placeholder="Only for a private host">
+      <p class="note" id="bundleTokenState"></p>
+
+      <div class="row">
+        <button id="bundleSave" class="btn ghost" type="button" data-i18n="bundleSaveBtn">Save archive source</button>
+        <span id="bundleMsg" class="note"></span>
+      </div>
+    </div>
+
     <div class="row">
       <button id="saveBtn" class="btn" type="button" data-i18n="save">Save</button>
       <button id="cancelBtn" class="btn ghost" type="button" data-i18n="cancel">Cancel</button>
@@ -918,6 +952,18 @@ const STR = {
     engine: "Answer engine", modelName: "Model", apiKey: "API key",
     keyPh: "Paste your key here",
     keyNote: "Saved only on this computer, in the app's own settings file. Never uploaded, never placed in the shared folder.",
+    bundleUrl: "Archive source (optional)",
+    bundleUrlPh: "https://…",
+    bundleNote: "Where to fetch the part of the archive no crawl can reach. Leave this empty and the app simply crawls the live site.",
+    bundleSha: "Pin digest (optional)",
+    bundleShaPh: "64 hexadecimal characters",
+    bundleToken: "Access token (optional)",
+    bundleTokenPh: "Only for a private host",
+    bundleSaveBtn: "Save archive source",
+    bundleSaved: "Archive source saved.",
+    bundleCleared: "Archive source cleared.",
+    bundleRewritten: "Will be fetched from:",
+    bundleTokenSet: "A token is stored.",
     save: "Save", cancel: "Cancel", saving: "Saving…", saved: "Saved", fixit: "Fix this",
     modeLocal: "Private mode · nothing leaves this computer",
     modeCloud: p => `Using ${p} · questions are sent over the internet`,
@@ -1637,6 +1683,9 @@ $('rail').addEventListener('click', e => {
 const modal = $('modal'), provSel = $('provider'), modelInp = $('model');
 const keyInp = $('apiKey'), keyRow = $('keyRow'), keyState = $('keyState');
 const provHelp = $('provHelp'), saveMsg = $('saveMsg');
+const bundleUrl = $('bundleUrl'), bundleSha = $('bundleSha');
+const bundleToken = $('bundleToken'), bundleMsg = $('bundleMsg');
+const bundleResolved = $('bundleResolved'), bundleTokenState = $('bundleTokenState');
 const banner = $('banner'), bannerText = $('bannerText'), modePill = $('modePill');
 let SETTINGS = null;
 
@@ -1700,9 +1749,32 @@ const refreshStatus = () =>
     if (!s.ready) pollTimer = setTimeout(refreshStatus, 3000);
   }).catch(() => {});
 
+/* The bundle fields, from whatever /settings last reported. The token is
+   never sent back to us -- only whether one is stored -- so its input starts
+   empty every time and an untouched box means "leave the stored one alone",
+   exactly like the API key box above it. */
+function renderBundle(b) {
+  if (!b) return;
+  bundleUrl.value = b.url || '';
+  bundleSha.value = b.sha256 || '';
+  bundleToken.value = '';
+  bundleTokenState.textContent = b.has_token
+    ? t('bundleTokenSet') + (b.token_hint ? ' (' + b.token_hint + ')' : '') : '';
+  // A share link is rewritten to a different address entirely. Showing the
+  // result is the difference between an operator who can see their link is
+  // understood and one who finds out minutes into a failed crawl.
+  bundleResolved.hidden = !b.resolved;
+  bundleResolved.textContent = b.resolved ? t('bundleRewritten') + ' ' + b.resolved : '';
+}
+
 function openSettings() {
   loadSettings()
-    .then(() => { saveMsg.textContent = ''; keyInp.value = ''; modal.hidden = false; provSel.focus(); })
+    .then(() => {
+      saveMsg.textContent = ''; keyInp.value = '';
+      bundleMsg.textContent = '';
+      renderBundle(SETTINGS && SETTINGS.bundle);
+      modal.hidden = false; provSel.focus();
+    })
     .catch(() => toast(t('offline')));
 }
 $('settingsBtn').onclick = openSettings;
@@ -1747,6 +1819,25 @@ $('saveBtn').onclick = async () => {
     modal.hidden = true; toast(t('saved'));
   } catch {
     saveMsg.textContent = t('offline');
+  }
+};
+
+$('bundleSave').onclick = async () => {
+  bundleMsg.textContent = t('saving');
+  try {
+    const res = await fetch('/settings/bundle', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: bundleUrl.value,
+                             sha256: bundleSha.value,
+                             token: bundleToken.value || null }),
+    });
+    const b = await res.json();
+    if (b.error) { bundleMsg.textContent = 'Error: ' + b.error; return; }
+    if (SETTINGS) SETTINGS.bundle = b;
+    renderBundle(b);
+    bundleMsg.textContent = t(b.url ? 'bundleSaved' : 'bundleCleared');
+  } catch {
+    bundleMsg.textContent = t('offline');
   }
 };
 
