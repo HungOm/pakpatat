@@ -248,10 +248,26 @@ def check_answerer() -> dict:
         return _check("answerer", "Answering model", False, str(e))
 
     if config.MODEL_PROVIDER != "ollama":
-        return _check("answerer", f"Answering model ({config.MODEL_PROVIDER})",
-                      ready, config.MODEL_NAME if ready else msg,
-                      fix=None if ready else "Open Settings and paste your API key.",
-                      action=None if ready else "settings")
+        label = f"Answering model ({config.MODEL_PROVIDER})"
+        if ready:
+            return _check("answerer", label, True, config.MODEL_NAME)
+        # This row carries the key form itself, so it must not send anyone to
+        # Settings for something already in front of them. It used to do both
+        # at once -- check_ready()'s "Click Settings and paste one in" followed
+        # by "Open Settings and paste your API key", directly above the box
+        # they could have typed into.
+        #
+        # check_ready()'s own wording is left alone on purpose: the main
+        # window's banner uses it, and there "open Settings" is the only thing
+        # a person can do.
+        spec = settings.PROVIDERS.get(config.MODEL_PROVIDER) or {}
+        detail = (f"{spec.get('label', config.MODEL_PROVIDER)} needs an API key."
+                  if spec.get("key_env") else msg)
+        # No action: renderChecks appends the key form for any failing
+        # "answerer" row, so a button here would be a second route to it.
+        return _check("answerer", label, False, detail,
+                      fix="Paste it below. It is kept on this computer, and "
+                          "can be changed later in Settings.")
 
     label = "Answering model (offline)"
     if ready:

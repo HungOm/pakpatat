@@ -665,6 +665,17 @@
       <p class="note" data-i18n="keyNote"></p>
     </div>
 
+    <div class="row">
+      <button id="saveBtn" class="btn" type="button" data-i18n="save">Save</button>
+      <button id="cancelBtn" class="btn ghost" type="button" data-i18n="cancel">Cancel</button>
+      <span id="saveMsg" class="note"></span>
+    </div>
+    <!-- Below the Save row on purpose. These three are an operator's
+         setting, used once when a laptop is set up; the engine and model
+         above them are what people open this panel for. Sitting between the
+         two, they pushed Save below the fold at every window size -- the
+         panel scrolls, so it was reachable, but "scroll past archive
+         configuration to save your model choice" is the wrong order. -->
     <!-- Where "Get the archive" fetches the un-crawlable half from
          (pakpatat/bundle.py). It lived in .env only, which meant an INSTALLED
          app could not be told where its archive was without hand-editing a
@@ -699,11 +710,6 @@
       </div>
     </div>
 
-    <div class="row">
-      <button id="saveBtn" class="btn" type="button" data-i18n="save">Save</button>
-      <button id="cancelBtn" class="btn ghost" type="button" data-i18n="cancel">Cancel</button>
-      <span id="saveMsg" class="note"></span>
-    </div>
   </div>
 </div>
 
@@ -2092,6 +2098,13 @@ function keyAlternative(refresh) {
       Object.entries(s.providers || {})
         .filter(([, d]) => d.needs_key)
         .forEach(([id, d]) => sel.append(new Option(d.label, id)));
+      // Start on the provider already configured. The row that sent someone
+      // here names one -- "Answering model (anthropic) needs an API key" --
+      // and offering Gemini as the default under that sentence invites
+      // pasting a Claude key into the wrong provider.
+      if (s.provider && [...sel.options].some(o => o.value === s.provider)) {
+        sel.value = s.provider;
+      }
     } catch { msg.className = 'chk-msg err'; msg.textContent = t('offline'); }
     key.focus();
   };
