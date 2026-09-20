@@ -133,6 +133,18 @@ a private, credentialed link — the script itself explains what it includes
 and why. Do not put a bundle anywhere public: the contents are UNHCR's
 copyrighted work.
 
+Point an installed copy at one in **Settings → Archive source**, or with
+`PAKPATAT_ARCHIVE_BUNDLE`; *Get the archive* fetches it before crawling and
+carries on without it if it cannot be reached. Host it somewhere that answers
+an authenticated GET — a **private** repository's release asset takes a token
+and holds 2 GB, which is the difference between handing the archive to named
+partner staff and publishing it. A public repository is the wrong place
+whatever its size: git history is distributed and permanent, so a fork or a
+clone puts the content beyond recall and the takedown promise below becomes
+one this project cannot keep. A share link works for a small bundle, but
+Drive stops serving files of about 100 MB without a virus-scan click-through,
+and locks a popular one for a day.
+
 ## Configuration
 
 All optional — the defaults are the tuned values (see the comments in
@@ -142,6 +154,9 @@ All optional — the defaults are the tuned values (see the comments in
 |---|---|---|
 | `PAKPATAT_ARCHIVE` | — | source archive (corpus builder and refresh only) |
 | `PAKPATAT_DATA` | `./data` | where corpus and index live |
+| `PAKPATAT_ARCHIVE_BUNDLE` | — | https:// bundle fetched before a crawl (Settings → Archive source) |
+| `PAKPATAT_ARCHIVE_TOKEN` | — | sent as `Authorization: Bearer`, for a private host |
+| `PAKPATAT_ARCHIVE_SHA256` | — | pin the bundle's digest, if you want it checked |
 | `ASSISTANT_MODEL_PROVIDER` | `ollama` | `ollama`, `google_genai`, `anthropic`, `openai` |
 | `ASSISTANT_MODEL` | `qwen2.5:3b-instruct` | see `pakpatat/config.py` before changing |
 | `ASSISTANT_TOP_K` | `8` | chunks per prompt |
