@@ -4,4 +4,4 @@
 
 The one who is asked, and who answers.
 """
-__version__ = "1.2.1"
+__version__ = "1.2.2"
