@@ -952,6 +952,7 @@ const STR = {
     engine: "Answer engine", modelName: "Model", apiKey: "API key",
     keyPh: "Paste your key here",
     keyNote: "Saved only on this computer, in the app's own settings file. Never uploaded, never placed in the shared folder.",
+    actInstallOllama: "Install it now",
     bundleUrl: "Archive source (optional)",
     bundleUrlPh: "https://…",
     bundleNote: "Where to fetch the part of the archive no crawl can reach. Leave this empty and the app simply crawls the live site.",
@@ -1888,6 +1889,9 @@ function hideSplash(el) {
 const SETUP_LABEL = {
   rebuild_index: 'actBuildIndex', pull_model: 'actPullModel',
   get_ollama: 'actGetOllama', settings: 'actSettings',
+  // Windows only -- preflight hands out get_ollama everywhere else, so this
+  // label is never reached on a machine that cannot act on it.
+  install_ollama: 'actInstallOllama',
   // The splash's failing "Archive" row can now offer the same crawl the
   // Knowledge base panel does, for an install with nothing on it yet.
   crawl_archive: 'archiveGetBtn',
@@ -2027,9 +2031,10 @@ function actionRow(check, refresh) {
       return;
     }
     if (check.action === 'get_ollama') {
-      // Installing a second application needs an administrator and a restart,
-      // so the honest offer is the download page, not a button that pretends
-      // to do it. The URL lives on the server side; nothing here can choose it.
+      // Reached on macOS and Linux only: one drags a .app, the other pipes a
+      // script to root, and neither is honest behind a progress bar. Windows
+      // gets action=install_ollama instead and falls through to runSetup.
+      // The URL lives on the server side; nothing here can choose it.
       btn.disabled = true;
       fetch('/open-ollama', { method: 'POST' })
         .catch(() => {})

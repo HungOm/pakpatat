@@ -25,6 +25,7 @@ itself live in pakpatat/firstrun.py, which this module only ever names
 """
 import json
 import pathlib
+import sys
 
 from . import config
 
@@ -258,6 +259,23 @@ def check_answerer() -> dict:
 
     from . import ollama
     if ollama.executable() is None and not ollama.is_up():
+        # Windows can do this properly rather than handing over a link.
+        # Ollama ships an Inno Setup package with PrivilegesRequired=lowest,
+        # installing per-user into {localappdata}\\Programs\\Ollama, so
+        # firstrun.install_ollama() drives it silently with no password.
+        #
+        # The size is in the text on purpose. It is ~1.5GB because Ollama
+        # bundles GPU runtimes, and a person on a shared connection deserves
+        # to know that before pressing a button, not ten minutes into it.
+        if sys.platform == "win32":
+            return _check("answerer", label, False,
+                          "The local AI engine (Ollama) is not installed on "
+                          "this computer (~1.5GB, once — needs internet).",
+                          fix="Install it now, or use Settings to answer with "
+                              "an online provider instead.",
+                          action="install_ollama")
+        # macOS drags a .app; Linux pipes a script to root. Neither belongs
+        # behind a progress bar, so both still get the download page.
         return _check("answerer", label, False,
                       "The local AI engine (Ollama) is not installed on this "
                       "computer.",

@@ -23,12 +23,26 @@ from a button.
     apply_update    swap the staged build in, atomically, keeping one rollback.
     discard_update  throw away a staged build nobody applied.
 
+    install_ollama  WINDOWS ONLY: fetch Ollama's own installer and run it
+                    silently. Everywhere else this stays a link -- see below.
+
 What is NOT here, and why:
 
-    installing Ollama
-                    a second application, needing an administrator. Offering a
-                    fake "install" button that silently fails is worse than
-                    linking the download.
+    installing Ollama anywhere but Windows
+                    This used to say "a second application, needing an
+                    administrator", and on Windows that turned out to be
+                    false: Ollama's installer is an Inno Setup package with
+                    PrivilegesRequired=lowest, installing per-user into
+                    {localappdata}\\Programs\\Ollama. No password, nothing
+                    system-wide -- so the objection that kept it a link does
+                    not apply there, and the platform this app's users are
+                    actually on is the one where it can be done properly.
+
+                    macOS ships a .app the user drags, and Linux installs
+                    through a shell script piped to root. Neither is something
+                    to do behind a progress bar, so both still link out. The
+                    original warning stands for them: a fake "install" button
+                    that silently fails is worse than linking the download.
 
 Every function takes a `progress` callback and reports through it. These steps
 take minutes, and a progress bar is the difference between "working" and
@@ -37,7 +51,11 @@ take minutes, and a progress bar is the difference between "working" and
 import json
 import pathlib
 import shutil
+import subprocess
+import sys
+import tempfile
 import threading
+import time
 import urllib.error
 import urllib.request
 
@@ -170,6 +188,132 @@ def pull_model(progress) -> dict:
     return {"model": name}
 
 
+# Ollama's own installer. x64 and arm64 both come from this one URL --
+# their ollama.iss is ArchitecturesAllowed=x64compatible arm64.
+OLLAMA_SETUP_URL = "https://ollama.com/download/OllamaSetup.exe"
+
+# It bundles GPU runtimes and is ~1.5GB. The cap is generous rather than tight
+# because the real purpose is to refuse something absurd -- a captive-portal
+# page, a redirect to the wrong file -- not to police Ollama's release size.
+OLLAMA_MAX_BYTES = 3 * 1024 ** 3
+
+
+def install_ollama(progress) -> dict:
+    """Install Ollama on Windows, silently, with no administrator.
+
+    The download is ~1.5GB, so it reports bytes exactly like pull_model: the
+    alternative is a button that looks frozen for ten minutes.
+
+    Every failure path ends with the download page, because the one thing
+    worse than not having this button is having one that fails quietly and
+    leaves the user with no idea what to do next.
+    """
+    from . import ollama
+
+    if sys.platform != "win32":
+        raise Unavailable(
+            "Installing Ollama automatically is Windows-only. On this "
+            "computer, install it from ollama.com/download and reopen the app."
+        )
+    if ollama.executable():
+        return {"already_installed": True}
+
+    progress({"stage": "installing", "detail": "Fetching the installer"})
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="pakpatat-ollama-")) / "OllamaSetup.exe"
+    try:
+        # bundle.py's redirect guard, reused rather than re-written: it refuses
+        # a redirect that leaves https, which is the whole risk in fetching an
+        # executable. There is no token here for it to strip.
+        from . import bundle
+        opener = urllib.request.build_opener(bundle._SameHostRedirect())
+        req = urllib.request.Request(
+            OLLAMA_SETUP_URL,
+            headers={"User-Agent": "Pakpatat (Ollama setup fetch)"},
+        )
+        try:
+            resp = opener.open(req, timeout=60)
+        except urllib.error.URLError as e:
+            raise Unavailable(
+                f"Could not reach ollama.com to download the installer "
+                f"({getattr(e, 'reason', e)}). Install it from "
+                "ollama.com/download instead."
+            ) from e
+
+        with resp:
+            total = int(resp.headers.get("Content-Length") or 0)
+            if total and total > OLLAMA_MAX_BYTES:
+                raise Unavailable(
+                    "That download is far larger than Ollama's installer "
+                    "should be, so it was refused. Install it from "
+                    "ollama.com/download instead."
+                )
+            got = 0
+            with tmp.open("wb") as fh:
+                while True:
+                    chunk = resp.read(256 * 1024)
+                    if not chunk:
+                        break
+                    got += len(chunk)
+                    if got > OLLAMA_MAX_BYTES:
+                        raise Unavailable(
+                            "The download kept going past the size an Ollama "
+                            "installer should be, so it was stopped."
+                        )
+                    fh.write(chunk)
+                    progress({"stage": "downloading",
+                              "detail": "Ollama installer",
+                              "count": got, "total": total or None})
+
+        # An executable is about to be run. Check it actually is one: a
+        # captive portal or an error page would otherwise be handed to
+        # CreateProcess, and "this is not a Windows program" is a much worse
+        # error than the honest one.
+        with tmp.open("rb") as fh:
+            if fh.read(2) != b"MZ":
+                raise Unavailable(
+                    "What came back from ollama.com was not a Windows "
+                    "program. If this computer is behind a login page or a "
+                    "company firewall, that is the usual cause. Install it "
+                    "from ollama.com/download instead."
+                )
+
+        progress({"stage": "installing", "detail": "Running Ollama's installer"})
+        # Inno Setup, PrivilegesRequired=lowest: per-user, no password, and
+        # /VERYSILENT keeps it from putting a second wizard in front of
+        # someone who already pressed a button in this one.
+        proc = subprocess.run(
+            [str(tmp), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+            capture_output=True, timeout=1800,
+        )
+        if proc.returncode != 0:
+            raise Unavailable(
+                f"Ollama's installer stopped with code {proc.returncode}. "
+                "Install it from ollama.com/download instead."
+            )
+
+        # The installer returning 0 is not the same as ollama being on PATH in
+        # THIS process -- the environment was inherited before it existed.
+        # Look for the executable directly, then start it.
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            if ollama.executable():
+                break
+            time.sleep(1.0)
+        else:
+            raise Unavailable(
+                "Ollama installed but could not be found afterwards. "
+                "Reopening the app usually picks it up."
+            )
+
+        progress({"stage": "installing", "detail": "Starting Ollama"})
+        up, msg = ollama.ensure(timeout=60.0)
+        if not up:
+            raise Unavailable(msg)
+        return {"installed": True, "version": ollama.executable()}
+    finally:
+        shutil.rmtree(tmp.parent, ignore_errors=True)
+
+
 # ----------------------------------------------------------------- archive
 # Thin wrappers: the crawling, diffing and atomic-swap logic lives in
 # pakpatat/archive.py, alongside the CLI (pipeline/refresh.py) that does the
@@ -215,6 +359,7 @@ def discard_update(progress) -> dict:
 
 # ---------------------------------------------------------------- dispatch
 ACTIONS = {
+    "install_ollama": install_ollama,
     "rebuild_index": rebuild_index,
     "pull_model": pull_model,
     "crawl_archive": crawl_archive,
