@@ -308,6 +308,27 @@ jobs:
                              -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES"
           if ($u.ExitCode -ne 0) { throw "the uninstaller exited $($u.ExitCode)" }
 
+      - name: Publish what the checks actually reported
+        # Always, not just on failure. The Actions log needs a token to read,
+        # and this project is maintained from a Mac that has none -- so the
+        # evidence that these steps ran at all has to come out through
+        # annotations, which the public API returns unauthenticated. Notices,
+        # so they carry no failure weight.
+        if: always()
+        run: |
+          foreach ($f in @(
+              @{n='build tree'; p="$env:GITHUB_WORKSPACE\selftest-build.log"},
+              @{n='portable zip'; p="$env:GITHUB_WORKSPACE\selftest-zip.log"},
+              @{n='installed copy'; p="$env:GITHUB_WORKSPACE\selftest-installed.log"})) {
+            if (Test-Path $f.p) {
+              $body = ((Get-Content $f.p) -join "`n")
+              $esc  = $body -replace '%','%25' -replace "`r",'%0D' -replace "`n",'%0A'
+              Write-Output "::notice title=selftest - $($f.n)::$esc"
+            } else {
+              Write-Output "::notice title=selftest - $($f.n)::NO REPORT WRITTEN -- the app did not run"
+            }
+          }
+
       - uses: actions/upload-artifact@v4
         if: steps.installer.outcome == 'success'
         with:
