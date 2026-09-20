@@ -282,8 +282,14 @@ def install_ollama(progress) -> dict:
     # Asked before anything else, and on every platform including the ones
     # that cannot install: "you already have this" is the right answer to a
     # Linux user pressing a button too, not an unsupported-platform error.
-    if ollama.executable():
-        return {"already_installed": True}
+    #
+    # present(), not executable(). A running Ollama whose binary is not in a
+    # place this app can name -- a container, a snap, another machine via
+    # OLLAMA_HOST -- is still Ollama, and installing a second copy beside a
+    # working one is the exact mistake this line exists to prevent.
+    found = ollama.present()
+    if found:
+        return {"already_installed": True, "path": found}
 
     spec = OLLAMA_DOWNLOAD.get(sys.platform)
     if spec is None:

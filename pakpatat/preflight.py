@@ -258,7 +258,11 @@ def check_answerer() -> dict:
         return _check("answerer", label, True, config.MODEL_NAME)
 
     from . import ollama
-    if ollama.executable() is None and not ollama.is_up():
+    # present(), not executable(): a server answering at OLLAMA_HOST is
+    # Ollama whether or not its binary sits anywhere we can name. Telling
+    # someone with a working container "Ollama is not installed" would be
+    # false on every operating system at once.
+    if ollama.present() is None:
         # Both desktop platforms can do this properly rather than handing
         # over a link -- see firstrun.install_ollama for why neither needs a
         # password. Linux genuinely does pipe a script to root, so it keeps
@@ -343,6 +347,29 @@ def provenance() -> dict:
 
 
 # --------------------------------------------------------------------- run
+def check_engine_version() -> dict:
+    """Is the local engine new enough for the model this app asks it to run?
+
+    Appended only when Ollama is actually answering, and its key is kept OUT
+    of run()'s blocking set on purpose. The floor in ollama.MIN_VERSION is a
+    conservative guess rather than a measured requirement, so this reports and
+    advises; it never stops someone whose setup works from using it.
+    """
+    from . import ollama
+    ok, raw = ollama.version_ok()
+    label = "Local engine version"
+    if raw is None:
+        return _check("engine", label, True,
+                      "Running, but it does not report a version.")
+    if ok:
+        return _check("engine", label, True, f"Ollama {raw}")
+    lo = ".".join(str(n) for n in ollama.MIN_VERSION)
+    return _check("engine", label, False,
+                  f"Ollama {raw} is older than this app expects ({lo} or newer).",
+                  fix="Answers may fail or come back empty. Update Ollama from "
+                      "ollama.com/download — your models are kept.")
+
+
 def run() -> dict:
     """All checks. `ready` covers exactly what is needed to answer a question.
 
@@ -351,8 +378,15 @@ def run() -> dict:
     never blocks -- it states a fact about where questions go, and both answers
     are legitimate.
     """
-    checks = [check_corpus(), check_index(), check_embedder(),
-              check_answerer(), check_privacy()]
+    from . import ollama
+    checks = [check_corpus(), check_index(), check_embedder(), check_answerer()]
+    # Only worth a row when there is a running engine to have a version, and
+    # only when it is the thing answering questions.
+    if config.MODEL_PROVIDER == "ollama" and ollama.is_up():
+        checks.append(check_engine_version())
+    checks.append(check_privacy())
+    # "engine" is deliberately absent: like privacy, it states something worth
+    # knowing without standing in the way of an app that works.
     blocking = {"corpus", "index", "embedder", "answerer"}
     ready = all(c["ok"] for c in checks if c["key"] in blocking)
     return {"ready": ready, "checks": checks, "provenance": provenance()}

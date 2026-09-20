@@ -20,6 +20,7 @@ four-minute one.
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -30,23 +31,41 @@ import urllib.request
 
 DEFAULT_HOST = "http://127.0.0.1:11434"
 
+# The oldest Ollama this app expects to work with.
+#
+# Set CONSERVATIVELY and on purpose: comfortably past the point qwen2.5
+# entered Ollama's library, so anything at or above it can certainly run the
+# default model. The exact floor is NOT something this project has measured,
+# which is precisely why the check built on it warns instead of blocking --
+# preflight reports it outside run()'s blocking set, the way check_privacy
+# states a fact without standing in anyone's way. Being wrong about a version
+# number must not stop a setup that works.
+MIN_VERSION = (0, 4, 0)
+
 # Launching from Finder / the Start Menu gives a minimal PATH, so `which` alone
 # is not enough -- check the places the official installers actually use.
 _CANDIDATES = {
     "darwin": [
         "/usr/local/bin/ollama",
         "/opt/homebrew/bin/ollama",
+        "/opt/local/bin/ollama",                 # MacPorts
+        "~/.local/bin/ollama",
         "/Applications/Ollama.app/Contents/Resources/ollama",
         "~/Applications/Ollama.app/Contents/Resources/ollama",
     ],
     "win32": [
         "~/AppData/Local/Programs/Ollama/ollama.exe",
+        "~/AppData/Local/Ollama/ollama.exe",     # pre-2024 installer layout
         "C:/Program Files/Ollama/ollama.exe",
+        "C:/Program Files (x86)/Ollama/ollama.exe",
     ],
     "linux": [
         "/usr/local/bin/ollama",
         "/usr/bin/ollama",
         "~/.local/bin/ollama",
+        "/snap/bin/ollama",
+        "/opt/ollama/bin/ollama",
+        "/home/linuxbrew/.linuxbrew/bin/ollama",
     ],
 }
 
@@ -101,6 +120,66 @@ def executable() -> str | None:
         if p.exists():
             return str(p)
     return None
+
+
+def parse_version(raw: str | None) -> tuple[int, ...] | None:
+    """('0.34.2-rc1') -> (0, 34, 2). None if it is not a version at all."""
+    if not raw:
+        return None
+    head = re.split(r"[-+ ]", str(raw).strip().lstrip("v"), 1)[0]
+    parts = head.split(".")
+    try:
+        return tuple(int(x) for x in parts[:3]) if parts and parts[0] else None
+    except ValueError:
+        return None
+
+
+def version(timeout: float = 1.5) -> str | None:
+    """What the running server calls itself, or None if it will not say.
+
+    Asked of the SERVER, not the binary, so it answers for an Ollama in a
+    container or on another machine exactly as it does for a local install --
+    which is the only way this works on an operating system we have never
+    thought about.
+    """
+    try:
+        return str((_get("/api/version", timeout) or {}).get("version") or "") or None
+    except (urllib.error.URLError, OSError, ValueError):
+        return None
+
+
+def version_ok(timeout: float = 1.5) -> tuple[bool, str | None]:
+    """(is it new enough, what it said). Unknown versions pass.
+
+    A server that will not report a version is old, exotic, or a proxy. None
+    of those is reason enough to tell someone their working setup is wrong, so
+    the benefit of the doubt goes to the machine in front of us.
+    """
+    raw = version(timeout)
+    parsed = parse_version(raw)
+    if parsed is None:
+        return True, raw
+    return parsed >= MIN_VERSION, raw
+
+
+def present() -> str | None:
+    """Where Ollama is, if it is anywhere this app can reach. None if nowhere.
+
+    Deliberately broader than executable(). A server answering at OLLAMA_HOST
+    IS Ollama, whether it came from a package we recognise, a container, a
+    snap, or another machine entirely -- and asking the server works
+    identically on every operating system, including ones this file has never
+    heard of, because it does not depend on guessing install paths.
+
+    This is what "already installed" has to mean before offering to install
+    it. executable() alone would miss a running Ollama whose binary sits
+    somewhere _CANDIDATES does not list, and put a second copy beside a
+    working one.
+    """
+    exe = executable()
+    if exe:
+        return exe
+    return host() if is_up() else None
 
 
 def _spawn() -> bool:
