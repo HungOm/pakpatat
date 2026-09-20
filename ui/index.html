@@ -437,6 +437,12 @@
      report, and a bar frozen at its last value would claim they had stalled. */
   .chk-bar.wait > span { width: 40%; animation: slide 1.1s ease-in-out infinite; }
   @keyframes slide { 0% { transform: translateX(-100%) } 100% { transform: translateX(250%) } }
+  .keyform { display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+             margin-top: 6px; }
+  .keyform select, .keyform input { font: inherit; font-size: 11.5px;
+             border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px;
+             background: var(--panel); color: var(--ink); }
+  .keyform input { flex: 1 1 190px; min-width: 150px; }
   .chk-msg { font-size: 11px; color: var(--muted); }
   .chk-msg.err { color: var(--bad-ink); }
   .chk-hint { flex-basis: 100%; font-size: 11px; color: var(--faint); }
@@ -953,6 +959,10 @@ const STR = {
     keyPh: "Paste your key here",
     keyNote: "Saved only on this computer, in the app's own settings file. Never uploaded, never placed in the shared folder.",
     actInstallOllama: "Install it now",
+    actHaveKey: "I already have an API key",
+    actKeyPh: "Paste your key",
+    actActivate: "Activate",
+    actKeyOk: "Activated — answering online now.",
     bundleUrl: "Archive source (optional)",
     bundleUrlPh: "https://…",
     bundleNote: "Where to fetch the part of the archive no crawl can reach. Leave this empty and the app simply crawls the live site.",
@@ -2046,6 +2056,75 @@ function actionRow(check, refresh) {
   return wrap;
 }
 
+/* The other way to answer a question: a key the person already holds.
+   Offered right here rather than behind Settings, because at this point they
+   have not got the app working yet and "open Settings" is one more place to
+   get lost in. It posts to the same /settings endpoint the panel uses, so the
+   key lands in .env exactly as it would have, and stays editable there. */
+function keyAlternative(refresh) {
+  const box = document.createElement('div');
+  const link = document.createElement('button');
+  link.type = 'button';
+  link.className = 'chk-btn';
+  link.textContent = t('actHaveKey');
+  const form = document.createElement('div');
+  form.className = 'keyform';
+  form.hidden = true;
+  const sel = document.createElement('select');
+  const key = document.createElement('input');
+  key.type = 'password'; key.spellcheck = false; key.autocomplete = 'off';
+  key.placeholder = t('actKeyPh');
+  const go = document.createElement('button');
+  go.type = 'button'; go.className = 'chk-btn'; go.textContent = t('actActivate');
+  const msg = document.createElement('div');
+  msg.className = 'chk-msg';
+  form.append(sel, key, go);
+  box.append(link, form, msg);
+
+  link.onclick = async () => {
+    link.hidden = true; form.hidden = false;
+    // Ask the server which providers take a key rather than hardcoding three
+    // names here: settings.PROVIDERS is the list that actually works, and it
+    // carries the labels this dropdown should show.
+    try {
+      const s = await (await fetch('/settings')).json();
+      sel.innerHTML = '';
+      Object.entries(s.providers || {})
+        .filter(([, d]) => d.needs_key)
+        .forEach(([id, d]) => sel.append(new Option(d.label, id)));
+    } catch { msg.className = 'chk-msg err'; msg.textContent = t('offline'); }
+    key.focus();
+  };
+
+  go.onclick = async () => {
+    if (!key.value.trim()) { key.focus(); return; }
+    go.disabled = true;
+    msg.className = 'chk-msg';
+    msg.textContent = t('saving');
+    try {
+      const res = await fetch('/settings', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: sel.value, api_key: key.value }),
+      });
+      const st = await res.json();
+      if (st.error) {
+        msg.className = 'chk-msg err'; msg.textContent = st.error; return;
+      }
+      setSettings(st); renderStatus(st);
+      key.value = '';
+      msg.textContent = t('actKeyOk');
+      // Same as a setup step: ask the machine again rather than assuming the
+      // row is now green.
+      refresh();
+    } catch {
+      msg.className = 'chk-msg err'; msg.textContent = t('offline');
+    } finally {
+      go.disabled = false;
+    }
+  };
+  return box;
+}
+
 function renderChecks(report, list, refresh) {
   list.innerHTML = '';
   report.checks.forEach((c, i) => {
@@ -2060,7 +2139,11 @@ function renderChecks(report, list, refresh) {
       span.append(' ');
       span.append(Object.assign(document.createElement('code'), {textContent: c.command}));
     }
-    if (!c.ok && c.action) span.append(actionRow(c, refresh));
+    // "Open Settings" is superseded by the inline form below it -- two ways
+    // to do the same thing, one of which leaves this screen, is a choice the
+    // person does not need.
+    if (!c.ok && c.action && c.action !== 'settings') span.append(actionRow(c, refresh));
+    if (!c.ok && c.key === 'answerer') span.append(keyAlternative(refresh));
     row.append(span);
     list.appendChild(row);
   });

@@ -271,16 +271,22 @@ def check_answerer() -> dict:
             return _check("answerer", label, False,
                           "The local AI engine (Ollama) is not installed on "
                           "this computer (~1.5GB, once — needs internet).",
-                          fix="Install it now, or use Settings to answer with "
-                              "an online provider instead.",
+                          fix="Ollama is what answers questions on this "
+                              "computer, with no account and nothing sent "
+                              "anywhere. Install it, or — if you already have "
+                              "a key for Claude, ChatGPT or Gemini — use that "
+                              "instead and questions are answered online.",
                           action="install_ollama")
         # macOS drags a .app; Linux pipes a script to root. Neither belongs
         # behind a progress bar, so both still get the download page.
         return _check("answerer", label, False,
                       "The local AI engine (Ollama) is not installed on this "
                       "computer.",
-                      fix="Install Ollama, then reopen this app — or use "
-                          "Settings to answer with an online provider instead.",
+                      fix="Ollama is what answers questions on this computer, "
+                          "with no account and nothing sent anywhere. Install "
+                          "it and reopen the app, or — if you already have a "
+                          "key for Claude, ChatGPT or Gemini — use that "
+                          "instead and questions are answered online.",
                       action="get_ollama")
 
     if ollama.is_up() and not ollama.has_model(config.MODEL_NAME):
