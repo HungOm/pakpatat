@@ -17,7 +17,8 @@ on:
     # workflow_dispatch is a REST call, and an SSH key only authenticates git,
     # so a Mac with no token cannot dispatch this. A push IS git, so this
     # branch is the one trigger reachable with nothing but the deploy key.
-    branches: ["ci/windows"]
+    # build-macos.yml watches the same branch, so one push exercises both.
+    branches: ["ci/build"]
   workflow_dispatch:
 
 permissions:

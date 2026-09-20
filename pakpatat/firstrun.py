@@ -23,26 +23,32 @@ from a button.
     apply_update    swap the staged build in, atomically, keeping one rollback.
     discard_update  throw away a staged build nobody applied.
 
-    install_ollama  WINDOWS ONLY: fetch Ollama's own installer and run it
-                    silently. Everywhere else this stays a link -- see below.
+    install_ollama  fetch Ollama and install it, per-user, with no password.
+                    Windows and macOS. Linux still links out -- see below.
 
 What is NOT here, and why:
 
-    installing Ollama anywhere but Windows
-                    This used to say "a second application, needing an
-                    administrator", and on Windows that turned out to be
-                    false: Ollama's installer is an Inno Setup package with
+    installing Ollama on Linux
+                    This entry used to cover every platform and said "a second
+                    application, needing an administrator". That was worth
+                    checking rather than believing, and it was wrong twice.
+
+                    Windows: Ollama ships an Inno Setup package with
                     PrivilegesRequired=lowest, installing per-user into
                     {localappdata}\\Programs\\Ollama. No password, nothing
-                    system-wide -- so the objection that kept it a link does
-                    not apply there, and the platform this app's users are
-                    actually on is the one where it can be done properly.
+                    system-wide.
 
-                    macOS ships a .app the user drags, and Linux installs
-                    through a shell script piped to root. Neither is something
-                    to do behind a progress bar, so both still link out. The
-                    original warning stands for them: a fake "install" button
-                    that silently fails is worse than linking the download.
+                    macOS: Ollama-darwin.zip is a .app, and ollama.py already
+                    looks for one in ~/Applications and already knows how to
+                    start it (see _CANDIDATES and _spawn). Unzipping into a
+                    folder inside the user's own home needs no password
+                    either, and at ~190MB it is a fraction of the Windows
+                    download, which carries GPU runtimes macOS does not need.
+
+                    Linux is the one that really does install through a shell
+                    script piped to root, so it keeps the link, and the
+                    original warning stands for it: a fake "install" button
+                    that silently fails is worse than an honest one.
 
 Every function takes a `progress` callback and reports through it. These steps
 take minutes, and a progress bar is the difference between "working" and
@@ -188,112 +194,157 @@ def pull_model(progress) -> dict:
     return {"model": name}
 
 
-# Ollama's own installer. x64 and arm64 both come from this one URL --
-# their ollama.iss is ArchitecturesAllowed=x64compatible arm64.
-OLLAMA_SETUP_URL = "https://ollama.com/download/OllamaSetup.exe"
+# What to fetch, and what the first bytes of it must look like. The size is
+# in the UI text, not here, but for the record: Windows is ~1.5GB because it
+# bundles CUDA and ROCm; macOS is ~190MB because Metal is already in the OS.
+#
+# One URL each covers both architectures -- Ollama's own installer declares
+# ArchitecturesAllowed=x64compatible arm64, and the mac .app is universal.
+OLLAMA_DOWNLOAD = {
+    "win32": ("https://ollama.com/download/OllamaSetup.exe",
+              "OllamaSetup.exe", b"MZ", "a Windows program"),
+    "darwin": ("https://ollama.com/download/Ollama-darwin.zip",
+               "Ollama-darwin.zip", b"PK\x03\x04", "a zip archive"),
+}
 
-# It bundles GPU runtimes and is ~1.5GB. The cap is generous rather than tight
-# because the real purpose is to refuse something absurd -- a captive-portal
-# page, a redirect to the wrong file -- not to police Ollama's release size.
+# Generous rather than tight: this is here to refuse something absurd -- a
+# captive-portal page, a redirect to the wrong file -- not to police Ollama's
+# release size.
 OLLAMA_MAX_BYTES = 3 * 1024 ** 3
 
 
+def _fetch_ollama(url: str, dest: pathlib.Path, magic: bytes, shape: str,
+                  progress) -> None:
+    """Download `url` to `dest`, reporting bytes, and prove it is what it claims.
+
+    The file is about to be executed or unpacked, so "did it arrive" is not
+    the question -- "is it the thing" is. A login page from a campus firewall
+    is a perfectly successful HTTP response.
+    """
+    from . import bundle
+
+    # bundle.py's redirect guard, reused rather than re-written: it refuses a
+    # redirect that leaves https, which is the whole risk in fetching
+    # something we are going to run. There is no token here for it to strip.
+    opener = urllib.request.build_opener(bundle._SameHostRedirect())
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "Pakpatat (Ollama setup fetch)"})
+    try:
+        resp = opener.open(req, timeout=60)
+    except urllib.error.URLError as e:
+        raise Unavailable(
+            f"Could not reach ollama.com ({getattr(e, 'reason', e)}). "
+            "Install it from ollama.com/download instead."
+        ) from e
+
+    with resp:
+        total = int(resp.headers.get("Content-Length") or 0)
+        if total and total > OLLAMA_MAX_BYTES:
+            raise Unavailable(
+                "That download is far larger than Ollama should be, so it "
+                "was refused. Install it from ollama.com/download instead.")
+        got = 0
+        with dest.open("wb") as fh:
+            while True:
+                chunk = resp.read(256 * 1024)
+                if not chunk:
+                    break
+                got += len(chunk)
+                if got > OLLAMA_MAX_BYTES:
+                    raise Unavailable(
+                        "The download kept going past the size Ollama should "
+                        "be, so it was stopped.")
+                fh.write(chunk)
+                progress({"stage": "downloading", "detail": "Ollama",
+                          "count": got, "total": total or None})
+
+    with dest.open("rb") as fh:
+        if not fh.read(len(magic)).startswith(magic):
+            raise Unavailable(
+                f"What came back from ollama.com was not {shape}. If this "
+                "computer is behind a login page or a company firewall, that "
+                "is the usual cause. Install it from ollama.com/download "
+                "instead.")
+
+
 def install_ollama(progress) -> dict:
-    """Install Ollama on Windows, silently, with no administrator.
+    """Install Ollama, per-user, with no administrator. Windows and macOS.
 
-    The download is ~1.5GB, so it reports bytes exactly like pull_model: the
-    alternative is a button that looks frozen for ten minutes.
+    The download reports bytes exactly like pull_model: the alternative is a
+    button that looks frozen for several minutes.
 
-    Every failure path ends with the download page, because the one thing
+    Every failure path ends by naming the download page, because the one thing
     worse than not having this button is having one that fails quietly and
     leaves the user with no idea what to do next.
     """
     from . import ollama
 
-    if sys.platform != "win32":
-        raise Unavailable(
-            "Installing Ollama automatically is Windows-only. On this "
-            "computer, install it from ollama.com/download and reopen the app."
-        )
+    # Asked before anything else, and on every platform including the ones
+    # that cannot install: "you already have this" is the right answer to a
+    # Linux user pressing a button too, not an unsupported-platform error.
     if ollama.executable():
         return {"already_installed": True}
 
-    progress({"stage": "installing", "detail": "Fetching the installer"})
-    tmp = pathlib.Path(tempfile.mkdtemp(prefix="pakpatat-ollama-")) / "OllamaSetup.exe"
+    spec = OLLAMA_DOWNLOAD.get(sys.platform)
+    if spec is None:
+        raise Unavailable(
+            "Installing Ollama automatically is not supported on this system. "
+            "Install it from ollama.com/download and reopen the app.")
+    url, filename, magic, shape = spec
+
+    progress({"stage": "installing", "detail": "Fetching Ollama"})
+    work = pathlib.Path(tempfile.mkdtemp(prefix="pakpatat-ollama-"))
     try:
-        # bundle.py's redirect guard, reused rather than re-written: it refuses
-        # a redirect that leaves https, which is the whole risk in fetching an
-        # executable. There is no token here for it to strip.
-        from . import bundle
-        opener = urllib.request.build_opener(bundle._SameHostRedirect())
-        req = urllib.request.Request(
-            OLLAMA_SETUP_URL,
-            headers={"User-Agent": "Pakpatat (Ollama setup fetch)"},
-        )
-        try:
-            resp = opener.open(req, timeout=60)
-        except urllib.error.URLError as e:
-            raise Unavailable(
-                f"Could not reach ollama.com to download the installer "
-                f"({getattr(e, 'reason', e)}). Install it from "
-                "ollama.com/download instead."
-            ) from e
+        payload = work / filename
+        _fetch_ollama(url, payload, magic, shape, progress)
 
-        with resp:
-            total = int(resp.headers.get("Content-Length") or 0)
-            if total and total > OLLAMA_MAX_BYTES:
+        if sys.platform == "win32":
+            progress({"stage": "installing", "detail": "Running Ollama's installer"})
+            # Inno Setup, PrivilegesRequired=lowest: per-user, no password,
+            # and /VERYSILENT keeps it from putting a second wizard in front
+            # of someone who already pressed a button in this one.
+            proc = subprocess.run(
+                [str(payload), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+                capture_output=True, timeout=1800)
+            if proc.returncode != 0:
                 raise Unavailable(
-                    "That download is far larger than Ollama's installer "
-                    "should be, so it was refused. Install it from "
-                    "ollama.com/download instead."
-                )
-            got = 0
-            with tmp.open("wb") as fh:
-                while True:
-                    chunk = resp.read(256 * 1024)
-                    if not chunk:
-                        break
-                    got += len(chunk)
-                    if got > OLLAMA_MAX_BYTES:
-                        raise Unavailable(
-                            "The download kept going past the size an Ollama "
-                            "installer should be, so it was stopped."
-                        )
-                    fh.write(chunk)
-                    progress({"stage": "downloading",
-                              "detail": "Ollama installer",
-                              "count": got, "total": total or None})
-
-        # An executable is about to be run. Check it actually is one: a
-        # captive portal or an error page would otherwise be handed to
-        # CreateProcess, and "this is not a Windows program" is a much worse
-        # error than the honest one.
-        with tmp.open("rb") as fh:
-            if fh.read(2) != b"MZ":
+                    f"Ollama's installer stopped with code {proc.returncode}. "
+                    "Install it from ollama.com/download instead.")
+        else:
+            progress({"stage": "unpacking", "detail": "Installing Ollama"})
+            # ditto, not zipfile. Python's ZipFile drops the executable bit,
+            # which would unpack an Ollama.app that cannot run -- a failure
+            # that would surface much later as "the engine will not start".
+            # ditto is the tool macOS itself uses for app bundles.
+            staged = work / "unpacked"
+            staged.mkdir()
+            proc = subprocess.run(["ditto", "-x", "-k", str(payload), str(staged)],
+                                  capture_output=True, timeout=900)
+            if proc.returncode != 0:
                 raise Unavailable(
-                    "What came back from ollama.com was not a Windows "
-                    "program. If this computer is behind a login page or a "
-                    "company firewall, that is the usual cause. Install it "
-                    "from ollama.com/download instead."
-                )
+                    "Could not unpack Ollama "
+                    f"({proc.stderr.decode('utf-8', 'replace').strip()[:120]}). "
+                    "Install it from ollama.com/download instead.")
 
-        progress({"stage": "installing", "detail": "Running Ollama's installer"})
-        # Inno Setup, PrivilegesRequired=lowest: per-user, no password, and
-        # /VERYSILENT keeps it from putting a second wizard in front of
-        # someone who already pressed a button in this one.
-        proc = subprocess.run(
-            [str(tmp), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
-            capture_output=True, timeout=1800,
-        )
-        if proc.returncode != 0:
-            raise Unavailable(
-                f"Ollama's installer stopped with code {proc.returncode}. "
-                "Install it from ollama.com/download instead."
-            )
+            # Take exactly the bundle we expect, from a directory we made and
+            # control, rather than moving whatever the archive happened to
+            # contain into the user's Applications folder.
+            app = staged / "Ollama.app"
+            if not app.is_dir():
+                raise Unavailable(
+                    "The download did not contain Ollama.app. Install it from "
+                    "ollama.com/download instead.")
 
-        # The installer returning 0 is not the same as ollama being on PATH in
-        # THIS process -- the environment was inherited before it existed.
-        # Look for the executable directly, then start it.
+            target_dir = pathlib.Path("~/Applications").expanduser()
+            target_dir.mkdir(parents=True, exist_ok=True)
+            target = target_dir / "Ollama.app"
+            if target.exists():
+                shutil.rmtree(target, ignore_errors=True)
+            shutil.move(str(app), str(target))
+
+        # A successful install is not the same as a findable one: this
+        # process inherited its environment before Ollama existed, so look
+        # for the executable directly rather than trusting PATH.
         deadline = time.time() + 60
         while time.time() < deadline:
             if ollama.executable():
@@ -302,16 +353,15 @@ def install_ollama(progress) -> dict:
         else:
             raise Unavailable(
                 "Ollama installed but could not be found afterwards. "
-                "Reopening the app usually picks it up."
-            )
+                "Reopening the app usually picks it up.")
 
         progress({"stage": "installing", "detail": "Starting Ollama"})
         up, msg = ollama.ensure(timeout=60.0)
         if not up:
             raise Unavailable(msg)
-        return {"installed": True, "version": ollama.executable()}
+        return {"installed": True, "path": ollama.executable()}
     finally:
-        shutil.rmtree(tmp.parent, ignore_errors=True)
+        shutil.rmtree(work, ignore_errors=True)
 
 
 # ----------------------------------------------------------------- archive

@@ -13,6 +13,10 @@ name: Build macOS app
 on:
   push:
     tags: ["v*"]
+    # The same branch build-windows.yml watches, so one push proves both
+    # platforms. Without this the macOS job only ever ran on a tag, which
+    # meant a change to it could not be tested without cutting a release.
+    branches: ["ci/build"]
   workflow_dispatch:
 
 permissions:
@@ -64,6 +68,11 @@ jobs:
 
       - name: Smoke-test the frozen app
         # Not continue-on-error: an app that cannot find its own UI must not ship.
+        #
+        # Unlike the Windows job, this one has always genuinely run: bash waits
+        # for a process whatever its subsystem, so there was never the
+        # PowerShell problem of a GUI-subsystem exe returning instantly and the
+        # step passing regardless.
         run: ./dist/Pakpatat.app/Contents/MacOS/Pakpatat --selftest
 
       - name: Build the .dmg
@@ -75,6 +84,39 @@ jobs:
           ln -s /Applications build/dmg/Applications
           hdiutil create -volname "Pakpatat ${VERSION}" -srcfolder build/dmg \
             -ov -format UDZO "dist/Pakpatat-${VERSION}-macOS-${ARCH}.dmg"
+
+      - name: Verify the .dmg, not the folder it came from
+        # The .app has been proven; the .dmg is what people download, and it
+        # is a separate artifact that its own build step can break. So mount
+        # it and run the copy INSIDE it -- selftest for "can it find its own
+        # parts", then ask it for its own page, which selftest structurally
+        # cannot check: it verifies index.html exists, not that the server
+        # hands it over.
+        #
+        # A locally built .dmg carries no quarantine attribute, so Gatekeeper
+        # does not stand in the way here the way it does for a download.
+        run: |
+          set -euo pipefail
+          DMG="dist/Pakpatat-${VERSION}-macOS-${ARCH}.dmg"
+          MNT=$(mktemp -d)
+          hdiutil attach "$DMG" -mountpoint "$MNT" -nobrowse -quiet
+          # Always detach, including when a check below fails.
+          trap 'hdiutil detach "$MNT" -quiet || true' EXIT
+
+          APP="$MNT/Pakpatat.app/Contents/MacOS/Pakpatat"
+          test -x "$APP" || { echo "::error::no runnable app inside the .dmg"; exit 1; }
+          "$APP" --selftest
+
+          "$APP" --serve --port 8765 &
+          SRV=$!
+          trap 'kill $SRV 2>/dev/null || true; hdiutil detach "$MNT" -quiet || true' EXIT
+          for i in $(seq 1 30); do
+            BODY=$(curl -fsS http://127.0.0.1:8765/ 2>/dev/null) && break || sleep 2
+          done
+          case "${BODY:-}" in
+            *'id="q"'*) echo "served its own UI: ${#BODY} bytes, question box present" ;;
+            *) echo "::error::the app in the .dmg never served its UI"; exit 1 ;;
+          esac
 
       - uses: actions/upload-artifact@v4
         with:

@@ -259,34 +259,31 @@ def check_answerer() -> dict:
 
     from . import ollama
     if ollama.executable() is None and not ollama.is_up():
-        # Windows can do this properly rather than handing over a link.
-        # Ollama ships an Inno Setup package with PrivilegesRequired=lowest,
-        # installing per-user into {localappdata}\\Programs\\Ollama, so
-        # firstrun.install_ollama() drives it silently with no password.
+        # Both desktop platforms can do this properly rather than handing
+        # over a link -- see firstrun.install_ollama for why neither needs a
+        # password. Linux genuinely does pipe a script to root, so it keeps
+        # the download page.
         #
-        # The size is in the text on purpose. It is ~1.5GB because Ollama
-        # bundles GPU runtimes, and a person on a shared connection deserves
-        # to know that before pressing a button, not ten minutes into it.
-        if sys.platform == "win32":
+        # The size is in the text on purpose, and the two differ by an order
+        # of magnitude: Windows carries CUDA and ROCm, macOS uses the Metal
+        # already in the OS. A person on a shared connection deserves to know
+        # which of those they are about to spend before pressing the button,
+        # not ten minutes into it.
+        size = {"win32": "~1.5GB", "darwin": "~190MB"}.get(sys.platform)
+        offer = ("Ollama is what answers questions on this computer, with no "
+                 "account and nothing sent anywhere. Install it, or — if you "
+                 "already have a key for Claude, ChatGPT or Gemini — use that "
+                 "instead and questions are answered online.")
+        if size:
             return _check("answerer", label, False,
                           "The local AI engine (Ollama) is not installed on "
-                          "this computer (~1.5GB, once — needs internet).",
-                          fix="Ollama is what answers questions on this "
-                              "computer, with no account and nothing sent "
-                              "anywhere. Install it, or — if you already have "
-                              "a key for Claude, ChatGPT or Gemini — use that "
-                              "instead and questions are answered online.",
-                          action="install_ollama")
-        # macOS drags a .app; Linux pipes a script to root. Neither belongs
-        # behind a progress bar, so both still get the download page.
+                          f"this computer ({size}, once — needs internet).",
+                          fix=offer, action="install_ollama")
         return _check("answerer", label, False,
                       "The local AI engine (Ollama) is not installed on this "
                       "computer.",
-                      fix="Ollama is what answers questions on this computer, "
-                          "with no account and nothing sent anywhere. Install "
-                          "it and reopen the app, or — if you already have a "
-                          "key for Claude, ChatGPT or Gemini — use that "
-                          "instead and questions are answered online.",
+                      fix=offer.replace("Install it,", "Install it and reopen "
+                                        "the app,"),
                       action="get_ollama")
 
     if ollama.is_up() and not ollama.has_model(config.MODEL_NAME):
