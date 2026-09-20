@@ -79,12 +79,35 @@ but silently dropped recall from 90% to 80%.
 |---|---|
 | **Windows — installer** | `Pakpatat-Setup-<version>.exe`. Per-user install, no administrator password. |
 | **Windows — portable** | `Pakpatat-<version>-windows-x64-portable.zip`. Unzip anywhere, run `Pakpatat.exe`. Nothing installed, nothing written outside the folder — so it runs from a USB stick, or on a managed laptop you are not an administrator on. |
-| **macOS** | `Pakpatat-<version>-macOS-arm64.dmg`. Unsigned, so right-click → **Open**, once. |
+| **macOS** | `Pakpatat-<version>-macOS-arm64.dmg`. Not notarised — **drag it to Applications first**, then see [Opening it on macOS](#opening-it-on-macos). |
 
 No download contains archive content. Offline answers need
 [Ollama](https://ollama.com/download) plus `ollama pull qwen2.5:3b-instruct`
 (~2 GB) — the first-run screen checks what is missing and offers a button for
 everything it can fix itself.
+
+### Opening it on macOS
+
+The app is ad-hoc signed but not notarised, because notarising needs a paid
+Apple Developer account. Gatekeeper therefore refuses it on first launch with
+*"Apple cannot check it for malicious software"* — the app is intact, and
+`codesign --verify --deep --strict` passes on every build; what is missing is
+Apple's stamp, not the signature.
+
+**Drag it to Applications before opening it.** Running it from the mounted disk
+image is what produces the version of that dialog with no way past it. Then
+either:
+
+- **Right-click the app → Open**, and again **Open** in the dialog; or
+- open it once, then go to **System Settings → Privacy & Security** and press
+  **Open Anyway**; or
+- in Terminal, clear the download flag directly:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Pakpatat.app
+```
+
+Once done, it opens normally forever after.
 
 **From a checkout.** Install Python 3.11+ and Ollama, then double-click
 `scripts/start-macos.command` or `scripts/start-windows.bat` — or by hand:
